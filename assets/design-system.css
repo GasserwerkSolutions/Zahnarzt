@@ -1,0 +1,98 @@
+/* assets/design-system.css
+ *
+ * DesignSystem foundation for Zahnärztehaus Arch.
+ * Loaded before the existing site CSS.
+ *
+ * Purpose:
+ * - introduce the shared Gasserwerk token/component vocabulary
+ * - remain visually passive
+ * - let the existing Zahnärztehaus CSS stay the source of visual truth
+ */
+
+@layer reset, tokens, semantic, themes, mode, base, state, components, patterns, site, utilities, overrides;
+
+@layer tokens {
+  :root {
+    /* Generic color contracts. The concrete Zahnärztehaus values are mapped
+       in design-system-bridge.css after the original CSS has loaded. */
+    --color-bg-primary: initial;
+    --color-bg-secondary: initial;
+    --color-surface: initial;
+    --color-surface-subtle: initial;
+    --color-text-primary: initial;
+    --color-text-secondary: initial;
+    --color-text-tertiary: initial;
+    --color-border: initial;
+    --color-border-light: initial;
+    --color-border-dark: initial;
+    --color-interactive: initial;
+    --color-interactive-dark: initial;
+    --color-interactive-light: initial;
+    --color-focus-ring: initial;
+
+    /* Radius contracts */
+    --radius-sm: initial;
+    --radius-md: initial;
+    --radius-lg: initial;
+    --radius-xl: initial;
+    --radius-2xl: initial;
+    --radius-full: 999px;
+
+    /* Elevation contracts */
+    --elevation-0: none;
+    --elevation-1: initial;
+    --elevation-2: initial;
+    --elevation-3: initial;
+
+    /* Type contracts */
+    --font-body: initial;
+    --font-heading: initial;
+    --font-display: initial;
+
+    /* Component contracts */
+    --btn-bg: var(--color-interactive);
+    --btn-fg: #fff;
+    --btn-bg-hover: var(--color-interactive-dark);
+    --btn-radius: var(--radius-full);
+    --card-bg: var(--color-surface);
+    --card-border: 1px solid var(--color-border);
+    --card-radius: var(--radius-lg);
+    --card-shadow: var(--elevation-2);
+    --section-py: clamp(4rem, 8vw, 7rem);
+    --container: 1120px;
+  }
+}
+
+@layer base {
+  html[data-density="comfortable"] {
+    --density-control-px: 1rem;
+    --density-control-py: .72rem;
+  }
+
+  html[data-mode="light"] {
+    color-scheme: light;
+  }
+}
+
+@layer components {
+  /* Passive helper classes only. Existing site classes keep precedence. */
+  .ds-container {
+    width: min(100% - 2rem, var(--container));
+    margin-inline: auto;
+  }
+
+  .ds-card {
+    background: var(--card-bg);
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+  }
+
+  .ds-eyebrow {
+    color: var(--color-interactive-dark);
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+}

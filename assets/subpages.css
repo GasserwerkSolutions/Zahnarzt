@@ -1,0 +1,752 @@
+/* ─────────────────────────────────────────────────────────────
+   Zahnärztehaus Arch — Subpages Stylesheet
+   Wird von allen Behandlungs-Detail-Seiten gemeinsam geladen.
+   Mainsite (index.html, behandlungen/index.html, impressum,
+   datenschutz, 404) nutzt weiter ihr inline CSS.
+
+   Eingebunden mit: <link rel="stylesheet" href="/assets/subpages.css?v=N">
+   (N = aktueller Cache-Buster in allen 8 Subseiten; bei CSS-Edits
+    dort überall identisch hochzählen, sonst inkonsistenter Load.)
+
+   ─── Cascade-Layer (2026-05-16, sync mit main.css) ──────────
+   Priorität (niedrig → hoch):
+     reset       — Universal-Reset (box-sizing).
+     base        — Foundation: Tokens, html/body, Typografie, Container.
+     components  — Alle namentlichen Bausteine inkl. Media-Queries.
+     utilities   — (aktuell noch ungenutzt; vorgesehen für künftige Helper).
+     overrides   — @media print, prefers-reduced-motion.
+   Browser-Support: alle modernen Engines seit Frühjahr 2022.
+   ───────────────────────────────────────────────────────────── */
+
+@layer reset, base, components, utilities, overrides;
+
+@layer reset{
+  *,*::before,*::after{box-sizing:border-box}
+}
+
+@layer base{
+:root{
+  /* ─── Brand-Farben ────────────────────────────────────────────────── */
+  --c-primary:#1A4585;--c-primary-dark:#103260;--c-primary-light:#3C64A5;--c-primary-bg:#E8EFF8;--c-primary-tint:#f4ede1;
+  --c-accent:#c9a66b;--c-accent-dark:#a78854;
+  --c-ink-deep:#0b2444;
+  /* Brand-CTA Teal — synchron mit main.css. Bei Brand-Update beide aktualisieren. */
+  --c-cta:#134e4a;--c-cta-dark:#0c3531;--c-cta-text:#fafafa;
+  --c-hero-blue:#1B5BC0;--c-hero-blue-dark:#174DA0;
+  --c-bg:#fbf8f3;--c-bg-warm:#f0e6d3;--c-surface:#fff;--c-text:#1f2a24;--c-text-muted:#4a564f;--c-text-light:#6b7269;
+  --c-border:#e3dccc;--c-border-light:#ece5d3;--c-border-strong:#9c917a;
+  --c-emergency-bg:#fef3c7;--c-emergency-text:#78350f;--c-emergency-strong:#9a4709;
+  --c-focus:#1A4585;
+  /* Strukturfarben (2026-05-16 / sync mit main.css). */
+  --c-white:#fff;--c-footer-bg:#0d0d0d;--c-frame-warm:#fafafa;
+  /* ─── Radien ──────────────────────────────────────────────────────── */
+  --radius-sm:4px;--radius-md:8px;--radius-lg:12px;--radius-xl:24px;--radius-pill:999px;--radius-circle:50%;
+  /* ─── Shadows ─────────────────────────────────────────────────────── */
+  --shadow-sm:0 1px 2px rgba(10,48,96,.06);--shadow-md:0 4px 16px rgba(10,48,96,.08);--shadow-lg:0 12px 32px rgba(10,48,96,.12);
+  --shadow-ring-frame:0 0 0 2px rgba(11,36,68,.12);
+  /* ─── Transition-Timing (Item 10 / 2026-05-16, sync mit main.css) ── */
+  --ease-fast:.2s;
+  --ease-card:.25s;
+  --ease-slow:.35s cubic-bezier(.4,0,.2,1);
+  --ease-header:.7s cubic-bezier(.22,.61,.36,1);
+  /* ─── Typografie ──────────────────────────────────────────────────── */
+  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --font-body:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  /* ─── Layout ──────────────────────────────────────────────────────── */
+  /* Header-Token (--header-h, --notfall-h) und --container sync mit main.css
+     (2026-05-28). Der User wollte den Header auf Subpages identisch zur Index
+     — die Token sind die Quelle der Wahrheit für Header-Höhe + Container-Breite. */
+  --container:1184px;--container-narrow:920px;--header-h:64px;--notfall-h:40px;
+  /* ─── Mobile/Touch (2026-05-23, sync mit main.css) ─────────────────── */
+  --tap-min:44px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  /* ─── Material-Texturen ──────────────────────────────────────────────
+     --noise-grain: feines isotropes Rauschen für body::before.
+     --noise-linen: gerichtete Leinen-Webe für Flow-Closing. */
+  --noise-grain:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --noise-linen:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1 0.55' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23l)'/%3E%3C/svg%3E");
+}
+/* overscroll-behavior:none synchron mit main.css — verhindert Browser-Bounce auf
+   iOS sowie Pull-to-Refresh auf Chrome-Android. Ohne diese Sync fühlt sich die Site
+   auf Hauptseite (PTR aus) und Subseiten (PTR an) unterschiedlich an. */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 12px);scroll-padding-bottom:calc(60px + var(--safe-bottom) + 16px);overscroll-behavior:none;overflow-x:hidden;overflow-x:clip}
+/* -webkit-tap-highlight-color:transparent → Android-Chrome zeichnet sonst grauen
+   Tap-Highlight über interaktive Elemente. Eigene :active-States sind sauberer.
+   ──────────────────────────────────────────────────────────────────────
+   background-image: dunkelblauer Top-Streifen (2026-05-28). Der transparente
+   Header (Default-State) sitzt im normalen Document-Flow über dem body-BG.
+   Subpages haben Hero-BG mit position:absolute → covered nur die Hero-Section,
+   nicht den Bereich hinter dem Header. Ohne diesen Gradient wäre der Bereich
+   hinter dem transparenten Header das --c-bg (off-white) → weißer Header-Text
+   unsichtbar. 240px deckt notfall-bar + header + scroll-Threshold-Buffer. */
+body{margin:0;font-family:var(--font-body);font-size:18px;line-height:1.78;color:var(--c-text);background-color:var(--c-bg);background-image:linear-gradient(180deg,var(--c-hero-blue) 0,var(--c-hero-blue) 240px,transparent 240px);background-repeat:no-repeat;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-optical-sizing:auto;font-weight:400;overscroll-behavior:none;overflow-x:hidden;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+/* Body-Scroll-Lock bei offenem Mobile-Drawer (siehe common.js). Kein touch-action:none —
+   das würde den Drawer-internen Scroll blockieren. overflow:hidden allein reicht. */
+body.has-nav-open{overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background-image:var(--noise-grain);opacity:.022;pointer-events:none;z-index:9999;mix-blend-mode:multiply}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;letter-spacing:-.025em;text-wrap:balance;color:var(--c-text);margin:0 0 .6em}
+h1{font-size:clamp(2rem,4.5vw,3.2rem)}
+h2{font-size:clamp(1.7rem,3.2vw,2.4rem)}
+h3{font-size:1.3rem}
+h4{font-size:1.1rem}
+p{margin:0 0 1em;-webkit-hyphens:auto;hyphens:auto;-webkit-hyphenate-limit-chars:8 4 4;hyphenate-limit-chars:8 4 4}
+a{color:var(--c-primary);text-decoration:none;transition:color var(--ease-fast)}
+a:hover{color:var(--c-primary-dark)}
+p a,dd a,figcaption a,.faq-item__body a,.team-intro a,.form__check a,.footer-bottom span a,.notfall-bar a,.faq-bottom a,.info-box a{text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+p a:hover,dd a:hover,figcaption a:hover,.faq-item__body a:hover,.form__check a:hover{text-decoration-thickness:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--c-focus);outline-offset:3px;border-radius:var(--radius-sm)}
+img,svg{max-width:100%;display:block}
+ul,ol{padding-left:1.4em}
+li{margin-bottom:.4em}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px}
+.container--narrow{max-width:var(--container-narrow)}
+
+/* Skip-Link: vertikales Versteck via transform statt left:-9999px (verhindert
+   horizontalen Overflow auf alten Android-WebViews). Siehe main.css für Detail. */
+.skip-link{position:fixed;top:8px;left:8px;background:var(--c-primary);color:var(--c-white);padding:12px 20px;z-index:1000;font-weight:600;transform:translateY(-120%);transition:transform var(--ease-fast);border-radius:var(--radius-sm);min-height:48px;display:inline-flex;align-items:center}
+.skip-link:focus{transform:translateY(0);color:var(--c-white)}
+}/* /@layer base */
+
+@layer components{
+/* position:relative + z-index:60 sync mit main.css. Pflicht, weil die Hero-BG-
+   Extension auf Subpages (hero__bg position:absolute z-index:0) sonst über die
+   statisch-positionierte Notfall-Bar paintet und sie unsichtbar macht. */
+.notfall-bar{background:#fde68a;color:var(--c-emergency-text);border-bottom:1px solid #f59e0b;transition:transform var(--ease-card) ease;position:relative;z-index:60}
+/* is-hidden: pointer-events fängt Browser-Edge-Cases ohne inert-Support. */
+.notfall-bar.is-hidden{transform:translateY(-100%);pointer-events:none}
+.notfall-bar__inner{display:flex;align-items:center;justify-content:center;gap:16px;height:var(--notfall-h);font-size:.92rem;font-weight:500;text-align:center}
+.notfall-bar__inner svg{flex-shrink:0}
+.notfall-bar a{color:var(--c-emergency-strong);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.notfall-bar a:hover{color:var(--c-emergency-text)}
+
+/* Header-Inversion (2026-05-23, sync mit main.css):
+   Default = TRANSPARENT + weisser Text über dem dunkelblauen Hero.
+   Beim Scrollen (>80px in common.js) opacifiziert. body.has-nav-open
+   erzwingt den opaque-State, damit das Mobile-Drawer-Menü nicht unter
+   transparentem Header über dem Hero hängt. */
+.site-header{
+  --header-fg:var(--c-white);
+  --header-bg:transparent;
+  --header-border:rgba(255,255,255,.18);
+  position:sticky;top:0;z-index:50;
+  background:var(--header-bg);
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--header-border);
+  color:var(--header-fg);
+  transition:background-color var(--ease-header),backdrop-filter var(--ease-header),border-color var(--ease-header),color var(--ease-header);
+  will-change:background-color
+}
+.site-header.is-scrolled,
+body.has-nav-open .site-header{
+  --header-fg:var(--c-text);
+  --header-bg:rgba(250,250,249,.92);
+  --header-border:var(--c-border);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+}
+.site-header__inner{display:flex;align-items:center;gap:24px;padding-top:8px;padding-bottom:8px;min-height:var(--header-h)}
+/* Brand: zwei Logo-Varianten gestapelt, Crossfade per opacity. */
+.brand{display:flex;align-items:center;flex-shrink:0;color:inherit;position:relative}
+.brand:hover{opacity:.85}
+.brand__logo{height:40px;width:auto;display:block;transition:opacity var(--ease-header)}
+.brand__logo--dark{position:absolute;top:50%;left:0;transform:translateY(-50%);opacity:0}
+.site-header.is-scrolled .brand__logo--light,
+body.has-nav-open .site-header .brand__logo--light{opacity:0}
+.site-header.is-scrolled .brand__logo--dark,
+body.has-nav-open .site-header .brand__logo--dark{opacity:1}
+.nav{display:flex;align-items:center;gap:8px;flex:1}
+.nav__list{display:flex;gap:0;list-style:none;margin:0;padding:0}
+/* Nav-Links erben color vom Header-Theme via inherit. KEINE color-Transition
+   (sync mit main.css), sonst Race mit der Parent-Color-Animation. */
+.nav__list a{display:block;padding:8px 16px;color:inherit;font-weight:500;font-size:.95rem;border-radius:var(--radius-sm);transition:background-color var(--ease-fast)}
+.nav__list a:hover{background:rgba(255,255,255,.12);color:var(--header-fg)}
+.site-header.is-scrolled .nav__list a:hover,
+body.has-nav-open .site-header .nav__list a:hover{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+.nav__list a[aria-current="page"]{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+/* Dropdown-Items: Hover/Focus-Within enthüllt sub-Menü. */
+.nav__item--has-sub{position:relative}
+.nav__item--has-sub > a{display:inline-flex;align-items:center;gap:8px}
+/* nav__icon: explizite Endwerte + Stagger-Timing sync zur Parent-Color-Transition.
+   Sync mit main.css — verhindert Race zwischen Child-Transition (200ms) und Parent
+   (350ms+350ms), die sichtbares Icon-Flackern beim Scroll-Hoch erzeugte. */
+.nav__icon{display:inline-block;flex-shrink:0;color:var(--c-white);opacity:.85;transition:opacity var(--ease-fast),color 350ms ease 350ms}
+.site-header.is-scrolled .nav__icon,
+body.has-nav-open .site-header .nav__icon{color:var(--c-primary);transition:opacity var(--ease-fast),color 200ms ease}
+.nav__item--has-sub > a:hover .nav__icon,
+.nav__item--has-sub:focus-within .nav__icon{opacity:1}
+.nav__caret{display:inline-block;flex-shrink:0;opacity:.65;transition:transform var(--ease-fast) ease,opacity var(--ease-fast) ease}
+.nav__item--has-sub:hover .nav__caret,
+.nav__item--has-sub:focus-within .nav__caret{transform:rotate(180deg);opacity:1}
+.nav__sub{position:absolute;top:100%;left:0;min-width:240px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px 0;margin:8px 0 0;list-style:none;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity var(--ease-fast) ease,transform var(--ease-fast) ease,visibility 0s linear var(--ease-fast);z-index:60}
+.nav__item--has-sub:hover .nav__sub,
+.nav__item--has-sub:focus-within .nav__sub{opacity:1;visibility:visible;transform:translateY(0);transition-delay:0s}
+.nav__sub a{display:block;padding:8px 16px;font-size:.92rem;font-weight:500;color:var(--c-text);border-radius:0;white-space:nowrap}
+.nav__sub a:hover{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+.nav__sub a[aria-current="page"]{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+/* Header-Phone: explizite Color-Endwerte + Stagger sync mit Parent (sync mit main.css). */
+.header__phone{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;margin-left:auto;color:var(--c-white);font-weight:500;font-size:.95rem;border:1px solid var(--header-border);border-radius:var(--radius-pill);transition:background-color var(--ease-fast),border-color var(--ease-fast),color 350ms ease 350ms}
+.header__phone:hover{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .header__phone,
+body.has-nav-open .site-header .header__phone{color:var(--c-primary);transition:background-color var(--ease-fast),border-color var(--ease-fast),color 200ms ease}
+.site-header.is-scrolled .header__phone:hover,
+body.has-nav-open .site-header .header__phone:hover{background:var(--c-primary-bg);border-color:var(--c-accent-dark);color:var(--c-primary-dark)}
+.header__cta{margin-left:8px}
+/* nav-toggle Theme-aware (sync mit main.css). */
+.nav-toggle{display:none;background:none;border:1px solid var(--header-border);width:var(--tap-min);height:var(--tap-min);border-radius:var(--radius-sm);cursor:pointer;margin-left:auto;align-items:center;justify-content:center;touch-action:manipulation;-webkit-user-select:none;user-select:none;color:currentColor;transition:background-color var(--ease-fast),border-color var(--ease-fast)}
+.nav-toggle:hover,.nav-toggle:focus-visible{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .nav-toggle:hover,
+.site-header.is-scrolled .nav-toggle:focus-visible,
+body.has-nav-open .site-header .nav-toggle:hover,
+body.has-nav-open .site-header .nav-toggle:focus-visible{background:var(--c-primary-bg);border-color:var(--c-primary)}
+.nav-toggle svg{width:22px;height:22px;stroke:currentColor;pointer-events:none}
+.nav-toggle[aria-expanded="true"]{background:var(--c-primary-bg);border-color:var(--c-primary);color:var(--c-primary)}
+/* Mobile Quick-Access-Icons — Theme-aware (sync mit main.css). */
+.nav-quick{display:none;background:none;border:1px solid var(--header-border);width:var(--tap-min);height:var(--tap-min);border-radius:var(--radius-sm);cursor:pointer;align-items:center;justify-content:center;color:currentColor;transition:background-color var(--ease-fast),border-color var(--ease-fast);touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.nav-quick svg{width:22px;height:22px;stroke:currentColor}
+.nav-quick:hover,.nav-quick:focus-visible{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .nav-quick:hover,
+.site-header.is-scrolled .nav-quick:focus-visible,
+body.has-nav-open .site-header .nav-quick:hover,
+body.has-nav-open .site-header .nav-quick:focus-visible{background:var(--c-primary-bg);color:var(--c-primary);border-color:var(--c-primary)}
+/* Quick-Access-Panel: synchron mit main.css */
+.nav-quick-panel{display:none;position:absolute;top:100%;right:24px;margin-top:8px;min-width:240px;max-width:calc(100vw - 48px);background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px 0;z-index:55;opacity:0;transform:translateY(-4px);transition:opacity var(--ease-fast) ease,transform var(--ease-fast) ease}
+.nav-quick-panel.is-open{display:block;opacity:1;transform:translateY(0)}
+.nav-quick-panel ul{list-style:none;margin:0;padding:0}
+.nav-quick-panel a{display:block;padding:12px 20px;color:var(--c-text);font-size:.95rem;font-weight:500;text-decoration:none;transition:background-color var(--ease-fast),color var(--ease-fast)}
+.nav-quick-panel a:hover,.nav-quick-panel a:focus-visible{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+.nav-quick-panel a[aria-current="page"]{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+
+/* touch-action:manipulation entfernt Double-Tap-Zoom auf Buttons (siehe main.css). */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;font-family:var(--font-body);font-weight:500;font-size:.95rem;border-radius:var(--radius-md);border:1px solid transparent;cursor:pointer;transition:all var(--ease-fast);text-decoration:none;min-height:48px;line-height:1.2;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.btn--primary{background:var(--c-cta);color:var(--c-cta-text);border-color:var(--c-cta)}
+.btn--primary:hover{background:var(--c-cta-dark);border-color:var(--c-cta-dark);color:var(--c-cta-text);transform:translateY(-1px);box-shadow:0 4px 14px rgba(19,78,74,.32)}
+.btn--ghost{background:transparent;color:var(--c-cta);border-color:var(--c-cta)}
+.btn--ghost:hover{border-color:var(--c-cta-dark);background:rgba(19,78,74,.06);color:var(--c-cta-dark)}
+.btn--lg{padding:16px 32px;font-size:1.1rem;min-height:52px}
+
+/* Breadcrumb (2026-05-28): transparent + position:relative mit z-index:2 — sitzt
+   visuell ÜBER der nach-oben-ragenden Hero-BG (siehe .hero__bg top:negativ Note).
+   Das Hero-Bild scheint durch den Breadcrumb-Bereich durch wie auch durch den
+   transparenten Header. Header+Breadcrumb+Hero erscheinen als ein nahtloser
+   Bild-Bereich. */
+.breadcrumb{position:relative;z-index:2;padding:18px 0;background:transparent;border-bottom:none;font-size:.88rem;color:rgba(255,255,255,.78)}
+.breadcrumb ol{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0}
+.breadcrumb li{margin:0}
+.breadcrumb li::after{content:"/";margin-left:6px;color:rgba(255,255,255,.45)}
+.breadcrumb li:last-child::after{content:""}
+.breadcrumb a{color:rgba(255,255,255,.78);transition:color var(--ease-fast)}
+.breadcrumb a:hover{color:var(--c-white)}
+.breadcrumb [aria-current="page"]{color:var(--c-white);font-weight:500}
+
+.section{padding:clamp(72px,8vw,120px) 0}
+.section--alt{background:var(--c-primary-bg)}
+.section--tint{background:var(--c-bg-warm)}
+.section-head{max-width:720px;margin:0 0 clamp(48px,5vw,72px)}
+.section-head--centered{margin-left:auto;margin-right:auto;text-align:center}
+.section-head__eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:.82rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c-primary);margin-bottom:16px}
+.section-head__eyebrow::before{content:"";width:32px;height:1px;background:var(--c-accent-dark)}
+.section-head--centered .section-head__eyebrow::before{display:none}
+.section-head h2{margin:0 0 12px}
+.section-head p{color:var(--c-text-muted);font-size:1.1rem;margin:0}
+
+.hero--subpage{padding:56px 0 48px;position:relative;overflow:hidden}
+.hero--subpage::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(800px 400px at 80% 10%,var(--c-primary-bg) 0%,transparent 60%)}
+.hero--subpage .hero__inner{max-width:780px}
+.hero__image{margin:0 0 32px;max-width:520px;border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-md);background:var(--c-primary-bg)}
+.hero__image img{width:100%;height:auto;display:block}
+.hero__split{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
+.hero__split .hero__inner{max-width:none}
+.hero__split .hero__image{margin:0;max-width:none}
+@media (max-width:880px){
+  .hero__split{grid-template-columns:1fr;gap:32px}
+  .hero__split .hero__image{order:-1;max-width:480px;margin:0 auto 8px}
+}
+.hero__eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:.82rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c-primary);margin-bottom:24px}
+.hero__eyebrow::before{content:"";width:32px;height:1px;background:var(--c-accent-dark)}
+.hero h1{margin-bottom:.4em;color:var(--c-text)}
+.hero__sub{font-size:1.15rem;color:var(--c-text-muted);max-width:640px;margin-bottom:32px}
+.hero__ctas{display:flex;gap:12px;flex-wrap:wrap}
+
+/* Swiss-Style Behandlungs-Übersichtsliste — hairline-divided, 5/7 Grid pro
+   Reihe (Titel links, Beschreibung rechts). Keine Card-Boxen. Editorial
+   Typografie. Auf Mobile stacken die zwei Spalten. */
+.concept-grid{display:flex;flex-direction:column;gap:0;max-width:760px;margin:0 auto}
+.concept-card{background:transparent;border:none;border-radius:0;border-top:1px solid var(--c-border-light);padding:clamp(24px,3vw,32px) 0;display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,48px);color:var(--c-text);text-decoration:none;align-items:start;position:relative;contain:layout style}
+.concept-card:first-child{border-top:none;padding-top:0}
+.concept-card:hover{color:var(--c-text)}
+.concept-card h3{font-family:var(--font-display);font-size:1.2rem;font-weight:600;margin:0;color:var(--c-text);line-height:1.3;letter-spacing:-.005em}
+.concept-card p{color:var(--c-text-muted);font-size:1rem;margin:0 0 12px;line-height:1.65}
+.concept-card p:last-child{margin-bottom:0}
+.concept-card__more{color:var(--c-primary);font-weight:500;font-size:.92rem;margin-top:8px;display:inline-flex;align-items:center;gap:6px;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-decoration-color:var(--c-accent-dark);transition:gap var(--ease-fast),text-decoration-thickness var(--ease-fast),color var(--ease-fast)}
+.concept-card:hover .concept-card__more{gap:10px;text-decoration-thickness:2px;color:var(--c-primary-dark)}
+
+/* process-steps + journey-steps + process-steps--horizontal entfernt — durch treat-grid mit __num ersetzt */
+
+.image-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1080px;margin:0 auto}
+/* aspect-ratio 4/3 stabil über alle Viewports (2026-05-23, Audit). Vorher
+   3/4 Desktop → 4/3 Mobile — Portrait-zu-Landscape-Flip beim 768-Resize war
+   stark sichtbar. 4/3 als Kompromiss: passt zu 3-Spalten-Grid (Desktop) und
+   1-Spalten-Stack (Mobile) ohne Orientations-Flip. */
+.image-strip__item{aspect-ratio:4/3;border-radius:var(--radius-md);overflow:hidden;background:var(--c-bg-warm);position:relative;contain:layout style paint}
+.image-strip__item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.image-strip__item:hover img{transform:scale(1.04)}
+@media (max-width:768px){
+  .image-strip{grid-template-columns:1fr;gap:16px}
+  .image-strip__item{max-width:480px;margin:0 auto}
+}
+
+.info-box{background:var(--c-surface);border-left:4px solid var(--c-primary);padding:32px;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);max-width:820px;margin:0 auto;contain:layout style}
+.info-box h3{margin-bottom:.6em}
+.info-box ul{margin:0 0 1.2em;padding-left:1.2em;color:var(--c-text-muted)}
+.info-box li{margin-bottom:.5em}
+.info-box p{color:var(--c-text-muted);margin:0}
+.info-box p strong{color:var(--c-text)}
+.info-box--urgent{border-left-color:var(--c-emergency-strong);background:var(--c-emergency-bg)}
+.info-box--urgent h3,.info-box--urgent strong{color:var(--c-emergency-text)}
+
+.faq-wrap{max-width:820px;margin:0 auto}
+.faq-ask{max-width:820px;margin:48px auto 0;padding:32px;background:var(--c-bg-warm);border:1px solid var(--c-border-light);border-radius:var(--radius-md);position:relative;overflow:hidden}
+.faq-ask::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--c-accent)}
+.faq-ask__title{font-family:var(--font-display);font-size:1.2rem;line-height:1.3;margin:0 0 6px;color:var(--c-primary)}
+.faq-ask__lead{font-size:.95rem;color:var(--c-text-muted);margin:0 0 16px;line-height:1.55}
+.faq-ask__form{display:flex;flex-direction:column;gap:16px}
+/* font-size:max(16px,1rem) — Belt-and-Suspenders gegen iOS-Auto-Zoom (siehe main.css). */
+.faq-ask__input{width:100%;padding:16px;border:1px solid var(--c-border-strong);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:max(16px,1rem);background:var(--c-surface);color:var(--c-text);resize:vertical;min-height:96px;line-height:1.55;transition:border-color var(--ease-fast),outline-color var(--ease-fast);-webkit-appearance:none;appearance:none}
+.faq-ask__input::placeholder{color:var(--c-text-light)}
+.faq-ask__input:focus{border-color:var(--c-primary);outline:3px solid var(--c-accent);outline-offset:2px}
+.faq-ask__actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.faq-ask__hint{font-size:.82rem;color:var(--c-text-muted);margin:0;line-height:1.5;flex:1;min-width:200px}
+.faq-ask__hint a{text-decoration:underline;text-underline-offset:2px}
+@media (max-width:560px){
+  .faq-ask{padding:24px}
+  .faq-ask__actions{flex-direction:column;align-items:stretch}
+  .faq-ask__actions .btn{width:100%}
+}
+.faq-item{border-bottom:1px solid var(--c-border);contain:layout style}
+.faq-item:last-of-type{border-bottom:none}
+.faq-item[open]{background:var(--c-primary-tint);border-radius:var(--radius-md);padding:0 16px;margin:0 -16px}
+.faq-item[open] summary{padding-left:0;padding-right:0}
+.faq-item summary{padding:24px 4px;font-weight:600;font-size:1.05rem;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;color:var(--c-text)}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"";flex-shrink:0;width:12px;height:12px;border-right:2px solid var(--c-primary);border-bottom:2px solid var(--c-primary);transform:rotate(45deg);transition:transform var(--ease-fast)}
+.faq-item[open] summary::after{transform:rotate(-135deg)}
+.faq-item__body{padding:0 4px 24px;color:var(--c-text-muted)}
+.faq-item__body p:last-child{margin-bottom:0}
+
+/* cta-banner entfernt — durch flow-closing ersetzt */
+.cta-banner__hours a{color:var(--c-primary);text-decoration:underline;text-underline-offset:2px}
+
+.cross-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:920px;margin:0 auto}
+.cross-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);padding:26px 24px;color:var(--c-text);display:flex;flex-direction:column;gap:8px;position:relative;contain:layout style}
+.cross-card:hover{border-color:var(--c-primary);color:var(--c-text)}
+.cross-card__title{font-family:var(--font-display);font-size:1.1rem;line-height:1.3;margin:0;color:var(--c-primary)}
+.cross-card__desc{color:var(--c-text-muted);font-size:.9rem;margin:0;flex:1;line-height:1.5}
+.cross-card__more{color:var(--c-primary);font-size:.88rem;font-weight:600;margin-top:auto;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-decoration-color:var(--c-accent-dark);transition:text-decoration-thickness var(--ease-fast),color var(--ease-fast)}
+.cross-card:hover .cross-card__more{text-decoration-thickness:2px;color:var(--c-primary-dark)}
+.cross-card--urgent{border-color:#fbbf24;background:linear-gradient(135deg,var(--c-emergency-bg) 0%,#fff8e1 60%,var(--c-surface) 100%)}
+.cross-card--urgent:hover{border-color:var(--c-emergency-strong)}
+.cross-card--urgent .cross-card__title{color:var(--c-emergency-text)}
+.cross-card--urgent .cross-card__more{color:var(--c-emergency-strong);text-decoration-color:var(--c-emergency-strong)}
+.cross-card--urgent:hover .cross-card__more{color:var(--c-emergency-text)}
+
+.site-footer{background:var(--c-footer-bg);color:var(--c-white);padding:48px 0 24px}
+.site-footer a{color:var(--c-white)}
+.site-footer a:hover{color:var(--c-accent)}
+
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.1fr;gap:40px;margin-bottom:32px}
+@media(max-width:980px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}.footer-col__brand{grid-column:span 2}}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr}.footer-col__brand{grid-column:auto}}
+.footer-col h2{color:rgba(255,255,255,.62);font-family:var(--font-body);font-size:.82rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin:0 0 16px}
+.footer-col ul{list-style:none;padding:0;margin:0;display:grid;gap:2px;font-size:.92rem}
+.footer-col ul a{display:inline-block;padding:6px 0;line-height:1.5}
+.footer-col ul a[aria-current="page"]{color:var(--c-white);font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.footer-col p{font-size:.92rem;color:rgba(255,255,255,.82);margin:0 0 8px}
+.footer-col__brand p{font-size:.92rem;color:rgba(255,255,255,.85);line-height:1.6;max-width:360px}
+.footer-logo{height:48px;width:auto;display:block;margin:0 0 16px}
+.footer-address{font-style:normal;color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.65;margin:0 0 16px;max-width:360px}
+.footer-address strong{color:var(--c-white);font-weight:600;display:block;margin-bottom:4px}
+.footer-address__meta{display:block;font-size:.85rem;color:rgba(255,255,255,.55);margin-top:6px}
+.footer-address__link{color:inherit;text-decoration:none;display:inline-block;transition:color var(--ease-fast),opacity var(--ease-fast)}
+.footer-address__link:hover,.footer-address__link:focus-visible{color:var(--c-white);text-decoration:underline;text-underline-offset:3px}
+.footer-address__link:hover svg,.footer-address__link:focus-visible svg{opacity:1}
+.footer-address__link:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:3px;border-radius:2px}
+
+.footer-cta{display:inline-flex;align-items:center;justify-content:center;padding:10px 20px;border-radius:var(--radius-pill);color:var(--c-white);font-weight:500;font-size:.92rem;text-decoration:none;transition:all var(--ease-fast);border:1px solid rgba(255,255,255,.4);background:transparent;margin-top:4px;min-height:44px}
+.footer-cta:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.7);color:var(--c-white)}
+
+.footer-hours{display:grid;gap:4px;font-size:.92rem;margin-bottom:14px}
+.footer-hours__row{display:grid;grid-template-columns:84px 1fr;gap:12px;color:rgba(255,255,255,.85)}
+.footer-hours__row time{color:rgba(255,255,255,.78)}
+.footer-hours__row--closed{color:rgba(255,255,255,.5)}
+.footer-hours__hint{font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.55;margin:0}
+.footer-hours__hint a{color:rgba(255,255,255,.78);text-decoration:underline;text-underline-offset:2px}
+.footer-hours__hint a:hover{color:var(--c-white)}
+
+.footer-emergency{padding:16px 0;border-top:1px solid rgba(255,255,255,.1);font-size:.88rem;color:rgba(255,255,255,.62);text-align:center;line-height:1.55}
+.footer-emergency a{color:rgba(255,255,255,.85);text-decoration:underline;text-underline-offset:2px;font-weight:500}
+.footer-emergency a:hover{color:var(--c-white)}
+
+.footer-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.10);margin-top:8px}
+.footer-trust > span{display:inline-flex;align-items:center;padding:6px 14px;border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-pill);font-size:.78rem;color:rgba(255,255,255,.72);font-weight:500;letter-spacing:.02em;line-height:1.3;background:rgba(255,255,255,.02)}
+.footer-trust__sep{display:none!important}
+
+.footer-bottom{padding-top:14px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:.8rem;color:rgba(255,255,255,.5)}
+.footer-bottom__legal{display:inline-flex;gap:16px;flex-wrap:wrap}
+.footer-bottom__legal a{color:rgba(255,255,255,.62);text-decoration:underline;text-underline-offset:2px}
+.footer-bottom__legal a:hover{color:var(--c-white)}
+.footer-bottom a{color:rgba(255,255,255,.65)}
+.footer-bottom a:hover{color:var(--c-white)}
+
+.trust-banner{text-align:center;padding:20px 24px;background:var(--c-primary-tint);border-top:1px solid var(--c-border-light);font-size:.88rem;color:var(--c-text-muted)}
+.trust-banner svg{display:inline-block;vertical-align:-3px;margin-right:6px;color:var(--c-primary)}
+
+/* Sticky-Bar (Mobile): width:100% + max-width:100% als robuster Viewport-Fit.
+   minmax(0,1fr) verhindert Grid-Overflow durch Inner-Content (siehe main.css für Detail-Notiz). */
+.sticky-bar{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%;background:var(--c-surface);border-top:1px solid var(--c-border);box-shadow:0 -4px 16px rgba(0,0,0,.06);z-index:40;height:calc(60px + var(--safe-bottom));padding-bottom:var(--safe-bottom);box-sizing:border-box}
+.sticky-bar__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));height:100%}
+.sticky-bar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--c-text);font-size:.72rem;font-weight:600;border-right:1px solid var(--c-border-light);min-width:0;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background-color var(--ease-fast)}
+.sticky-bar a:active{background-color:rgba(0,0,0,.04)}
+.sticky-bar a.is-emergency:active{background-color:#fde68a}
+.sticky-bar a.is-primary:active{background-color:#0a1f3a}
+.sticky-bar a:last-child{border-right:none}
+.sticky-bar a svg{width:20px;height:20px;flex-shrink:0}
+.sticky-bar a.is-emergency{color:var(--c-emergency-strong);background:var(--c-emergency-bg)}
+.sticky-bar a.is-primary{color:var(--c-white);background:var(--c-ink-deep)}
+
+/* ── Subpage-Hero (vereinheitlicht: hero--sub-bg, hero--zahnersatz, hero--kinder) ─── */
+/* 100dvh als progressive Enhancement — reagiert auf iOS-Safari-Address-Bar-Collapse,
+   verhindert „Springen" der Section-Höhe beim Scrollen. 100vh-Fallback für Safari <15.4. */
+/* EXTEND BEHIND HEADER + BREADCRUMB + NOTFALL (2026-05-28, revised):
+   hero__bg und hero__fade ragen über negatives top nach oben bis zur Body-
+   Oberkante. Vorher war 56px als Breadcrumb-Höhe-Schätzung verwendet — das
+   war 4-6px zu wenig (echte Höhe ~60px), wodurch eine schmale Body-Gradient-
+   Linie zwischen Notfall-Bar-Ende und Hero-BG-Start sichtbar war.
+   Jetzt deckt die Extension Header + Notfall + grosszügigen Buffer für
+   beliebige Breadcrumb-Höhe ab. Notfall-Bar bleibt mit ihrem opaken Yellow
+   und z-index:60 darüber sichtbar, der Bereich darunter zeigt das Hero-Bild.
+   overflow:visible auf der Hero-Section ist Pflicht damit die Extension nicht
+   geclipt wird. */
+.hero--sub-bg,
+.hero--zahnersatz,
+.hero--kinder{padding:0;min-height:min(560px,calc(100vh - 80px));min-height:min(560px,calc(100dvh - 80px));position:relative;overflow:visible;background:var(--c-hero-blue);display:flex;align-items:center}
+.hero--sub-bg .hero__bg,
+.hero--zahnersatz .hero__bg,
+.hero--kinder .hero__bg{position:absolute;top:calc(-1 * (var(--header-h) + var(--notfall-h) + 60px));left:0;right:0;bottom:0;z-index:0;overflow:hidden}
+.hero--sub-bg .hero__bg img,
+.hero--zahnersatz .hero__bg img,
+.hero--kinder .hero__bg img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.hero--sub-bg .hero__fade,
+.hero--zahnersatz .hero__fade,
+.hero--kinder .hero__fade{
+  position:absolute;top:calc(-1 * (var(--header-h) + var(--notfall-h) + 60px));left:0;right:0;bottom:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(0deg,
+      rgba(15,42,80,.04) 0%,
+      rgba(15,42,80,.10) 50%,
+      rgba(15,42,80,.18) 100%
+    ),
+    linear-gradient(90deg,
+      rgba(27,91,192,.94) 0%,
+      rgba(27,91,192,.90) 12%,
+      rgba(27,91,192,.78) 26%,
+      rgba(27,91,192,.55) 40%,
+      rgba(27,91,192,.30) 54%,
+      rgba(27,91,192,.10) 68%,
+      transparent 80%
+    ),
+    linear-gradient(0deg,
+      rgba(27,91,192,.22) 0%,
+      rgba(27,91,192,.06) 22%,
+      transparent 50%
+    );
+}
+.hero--sub-bg .container,
+.hero--zahnersatz .container,
+.hero--kinder .container{width:100%}
+.hero--sub-bg .hero__inner,
+.hero--zahnersatz .hero__inner,
+.hero--kinder .hero__inner{position:relative;z-index:2;max-width:540px;padding:72px 0;margin-left:0;margin-right:auto}
+/* Per-Variante Feinabstimmung */
+.hero--zahnersatz .hero__inner{max-width:520px}
+.hero--kinder .hero__inner{max-width:460px}
+.hero--sub-bg .hero__eyebrow,
+.hero--zahnersatz .hero__eyebrow,
+.hero--kinder .hero__eyebrow{color:rgba(255,255,255,.92);letter-spacing:.14em;font-weight:600}
+.hero--sub-bg .hero__eyebrow::before,
+.hero--zahnersatz .hero__eyebrow::before,
+.hero--kinder .hero__eyebrow::before{background:var(--c-accent);width:36px}
+.hero--sub-bg h1,
+.hero--zahnersatz h1,
+.hero--kinder h1{color:var(--c-white);letter-spacing:-.02em}
+.hero--sub-bg .hero__sub,
+.hero--zahnersatz .hero__sub,
+.hero--kinder .hero__sub{color:rgba(255,255,255,.92)}
+.hero--sub-bg .btn--ghost,
+.hero--zahnersatz .btn--ghost,
+.hero--kinder .btn--ghost{color:var(--c-white);border-color:rgba(255,255,255,.55)}
+.hero--sub-bg .btn--ghost:hover,
+.hero--zahnersatz .btn--ghost:hover,
+.hero--kinder .btn--ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.85);color:var(--c-white)}
+@media(max-width:768px){
+  .hero--sub-bg,
+  .hero--zahnersatz,
+  .hero--kinder{min-height:calc(100vh - 72px);min-height:calc(100dvh - 72px);align-items:flex-end}
+  .hero--sub-bg .hero__inner,
+  .hero--zahnersatz .hero__inner,
+  .hero--kinder .hero__inner{padding:180px 0 56px;max-width:none}
+  .hero--sub-bg .hero__fade,
+  .hero--zahnersatz .hero__fade,
+  .hero--kinder .hero__fade{
+    background:
+      linear-gradient(0deg,
+        rgba(15,42,80,.04) 0%,
+        rgba(15,42,80,.10) 50%,
+        rgba(15,42,80,.22) 100%
+      ),
+      linear-gradient(0deg,
+        rgba(27,91,192,.96) 0%,
+        rgba(27,91,192,.88) 12%,
+        rgba(27,91,192,.70) 28%,
+        rgba(27,91,192,.42) 48%,
+        rgba(27,91,192,.16) 70%,
+        transparent 88%
+      ),
+      linear-gradient(90deg,
+        rgba(27,91,192,.24) 0%,
+        transparent 52%
+      );
+  }
+}
+
+@media (max-width:980px){
+  .concept-card{grid-template-columns:1fr;gap:8px}
+  .cross-grid{grid-template-columns:1fr}
+}
+@media (max-width:980px){
+  .nav__list a{padding:10px 9px;font-size:.9rem}
+}
+@media (max-width:880px){
+  .header__phone{font-size:0;gap:0;padding:10px;border:none;min-width:44px;justify-content:center}
+  .header__phone svg{width:20px;height:20px;flex-shrink:0}
+  .header__cta{display:none}
+}
+@media (max-width:768px){
+  /* Mobile-Nav-Drawer: max-height + overflow-y → lange Submenu-Stacks scrollen
+     statt am Viewport-Rand abzubrechen. overscroll-behavior:contain → Drawer-
+     Scroll triggert keinen Page-Scroll im Body. */
+  .nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--c-surface);border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);padding:16px 24px calc(16px + var(--safe-bottom));flex-direction:column;align-items:stretch;max-height:calc(100dvh - var(--header-h));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .nav.is-open{display:flex}
+  .nav__list{flex-direction:column;gap:0}
+  .nav__list a{padding:14px 12px;border-bottom:1px solid var(--c-border-light);min-height:48px;display:flex;align-items:center}
+  /* Mobile: Submenüs collapsible — by default geschlossen, Caret toggled */
+  .nav__caret{display:inline-block;margin-left:auto;padding:12px;opacity:1;transition:transform var(--ease-slow);flex-shrink:0;box-sizing:content-box}
+  .nav__item--has-sub > a{display:flex;align-items:center;gap:8px}
+  .nav__item--has-sub.is-expanded > a .nav__caret{transform:rotate(180deg)}
+  .nav__sub{position:static;display:none;opacity:1;visibility:visible;transform:none;box-shadow:none;border:none;border-radius:0;padding:0;margin:0;background:transparent;transition:none;min-width:0}
+  .nav__item--has-sub.is-expanded .nav__sub{display:block}
+  .nav__sub a{padding:12px 12px 12px 28px;font-size:.88rem;color:var(--c-text-muted);white-space:normal;min-height:44px}
+  .header__phone,.header__cta{margin:8px 0 0;justify-content:center;font-size:1rem;min-height:48px}
+  .header__phone{padding:10px 16px;border:1px solid var(--c-border);min-width:auto}
+  .header__phone svg{width:16px;height:16px}
+  .nav-toggle{display:flex;margin-left:0}
+  .nav-quick{display:flex}
+  .nav-quick:first-of-type{margin-left:auto}
+  .hero--subpage{padding:32px 0 24px}
+  .info-box{padding:24px}
+  .cta-banner{padding:32px 24px}
+  .sticky-bar{display:block}
+  .brand__logo{height:40px}
+  .notfall-bar__inner{height:auto;min-height:var(--notfall-h);padding-top:8px;padding-bottom:8px;line-height:1.35;gap:8px;font-size:.88rem}
+  body{padding-bottom:calc(60px + var(--safe-bottom))}
+  .footer-grid{grid-template-columns:1fr;gap:32px}
+  .footer-col__brand{grid-column:auto}
+  .process-steps__item{grid-template-columns:44px 1fr;gap:16px}
+  .process-steps__num{width:36px;height:36px;padding:3px}
+  /* Footer-Trust-Pills: bessere Touch-Targets auf Mobile (36px Höhe statt 28). */
+  .footer-trust > span{padding:10px 14px;min-height:36px}
+  /* Footer-Links Touch-Target erhöhen */
+  .footer-col ul a{padding:10px 0;min-height:40px;display:inline-flex;align-items:center}
+}
+@media (max-width:560px){
+  h1{font-size:1.9rem}
+  h2{font-size:1.5rem}
+  .hero--sub-bg .hero__bg img,
+  .hero--zahnersatz .hero__bg img,
+  .hero--kinder .hero__bg img{object-position:center top}
+  .container{padding:0 20px}
+  .concept-card{padding:20px 0}
+  .info-box{padding:24px 16px}
+  .cta-banner{padding:32px 24px}
+  /* Section-Padding auf Phone leicht reduzieren — die clamp() oben (72-120) wäre
+     auf 360px-Geräten 72px, das ist OK, aber zwischen-Sections atmen lassen. */
+  .section{padding:clamp(48px,8vw,80px) 0}
+  .faq-ask{padding:20px}
+  /* Hero-Subpage Inner-Padding-Top auf kleinem Schirm runtersetzen, damit Headline
+     + CTA auf 568px-Höhe-Geräten (iPhone-5-Klasse-Landscape) sichtbar bleiben. */
+  .hero--sub-bg .hero__inner,
+  .hero--zahnersatz .hero__inner,
+  .hero--kinder .hero__inner{padding:144px 0 40px}
+}
+/* Sehr schmale Geräte (320px iPhone 5/SE original) */
+@media (max-width:360px){
+  .container{padding:0 16px}
+  .hero--sub-bg h1,
+  .hero--zahnersatz h1,
+  .hero--kinder h1{font-size:1.8rem}
+  .info-box{padding:20px 14px}
+  .sticky-bar a{font-size:.7rem;gap:1px}
+  .sticky-bar a svg{width:18px;height:18px}
+}
+/* ─────────────────────────────────────────────────────────────
+   Editorial-System (von Startseite übernommen)
+   - editorial-split: 5/7 Magazine-Spread
+   - flow-pair: 12-Col mit 7/5 Spans, alternierend via --reverse
+   - flow-section / flow-closing / flow-text Typografie
+   - section-divider als architektonischer Übergang
+   ───────────────────────────────────────────────────────────── */
+.editorial-split{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(32px,5vw,64px);align-items:start;position:relative}
+.editorial-split__intro{grid-column:span 5}
+.editorial-split__content{grid-column:span 7}
+.editorial-split__lead{font-size:1.05rem;color:var(--c-text-muted);line-height:1.6;margin:14px 0 0;max-width:380px}
+.editorial-split .faq-wrap{max-width:none;margin:0}
+@media(max-width:880px){
+  .editorial-split{grid-template-columns:1fr;gap:32px}
+  .editorial-split__intro,.editorial-split__content{grid-column:auto}
+}
+
+.flow-pair-section{padding:clamp(64px,7vw,120px) 0;background:#fdfbf7}
+.flow-pair{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:start;max-width:min(calc(var(--container) - 48px),calc(100vw - 48px));margin:0 auto clamp(80px,10vw,140px)}
+.flow-pair:last-child{margin-bottom:0}
+.flow-pair__visual{grid-column:span 7;margin:0}
+.flow-pair__visual img{width:100%;height:auto;display:block;border-radius:var(--radius-md);aspect-ratio:4/3;object-fit:cover}
+.flow-pair__visual--portrait img{aspect-ratio:1/1;max-height:520px}
+.flow-pair__copy{grid-column:span 5;max-width:520px}
+.flow-pair__copy h3{font-family:var(--font-display);font-size:clamp(1.5rem,2.8vw,2rem);line-height:1.2;margin:0 0 16px;color:var(--c-text)}
+.flow-pair--reverse .flow-pair__visual{order:2}
+.flow-pair--reverse .flow-pair__copy{order:1}
+.flow-pair--accent{background:var(--c-primary-bg);padding:clamp(32px,5vw,64px);border-radius:var(--radius-lg)}
+.flow-caption{font-family:var(--font-body);font-size:.85rem;font-style:italic;color:var(--c-text-light);margin-top:14px;line-height:1.5}
+@media(max-width:880px){
+  .flow-pair{grid-template-columns:1fr;gap:24px}
+  .flow-pair__visual,.flow-pair__copy,.flow-pair--reverse .flow-pair__visual,.flow-pair--reverse .flow-pair__copy{grid-column:auto;order:0}
+  /* aspect-ratio bleibt 4/3 (Base) — sync mit main.css; vorheriger 16/10-
+     Mobile-Override entfernt 2026-05-23. */
+  .flow-pair--accent{padding:clamp(24px,5vw,40px)}
+}
+
+.flow-text{max-width:min(720px,92vw);margin:0 auto;padding:0 24px}
+.flow-eyebrow{display:inline-flex;align-items:center;gap:12px;font-family:var(--font-body);font-size:.8rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-primary);margin-bottom:24px}
+.flow-eyebrow::before{content:"";width:32px;height:1px;background:var(--c-accent-dark)}
+.flow-h2{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.6rem);line-height:1.2;letter-spacing:-.015em;color:var(--c-text);margin:0 0 24px}
+.flow-prose{font-family:var(--font-body);font-size:1.05rem;line-height:1.75;color:var(--c-text-muted);margin:0}
+
+.flow-closing{background-color:var(--c-bg-warm,#f0e6d3);background-image:linear-gradient(rgba(240,230,211,.86),rgba(240,230,211,.86)),url("/assets/images/atmo-aare-wasser.webp");background-image:linear-gradient(rgba(240,230,211,.86),rgba(240,230,211,.86)),image-set(url("/assets/images/atmo-aare-wasser.avif") type("image/avif"),url("/assets/images/atmo-aare-wasser.webp") type("image/webp"));background-size:cover;background-position:center;padding:clamp(96px,12vw,160px) 0;position:relative;isolation:isolate}
+/* Leinen-Webe-Textur — gleiches Material-Idiom wie Trustbar auf der Startseite. */
+.flow-closing::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background-image:var(--noise-linen);
+  opacity:.06;
+  mix-blend-mode:multiply;
+}
+.flow-closing__inner{max-width:min(720px,92vw);margin:0 auto;padding:0 24px;text-align:center}
+.flow-closing h2{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.25;letter-spacing:-.015em;margin:0 0 24px;color:var(--c-text)}
+.flow-closing__lead{font-family:var(--font-body);font-size:1.1rem;line-height:1.65;color:var(--c-text-muted);margin:0 0 40px}
+.flow-closing__contact{font-family:var(--font-display);font-size:clamp(1.1rem,1.6vw,1.35rem);line-height:1.65;color:var(--c-text);margin:0 0 28px}
+.flow-closing__contact a{color:var(--c-primary);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;transition:text-decoration-thickness var(--ease-fast)}
+.flow-closing__contact a:hover{text-decoration-thickness:2px}
+.flow-closing__hours{font-family:var(--font-body);font-size:.88rem;color:var(--c-text-light);margin:0}
+
+/* Section-Divider: Holz opak, oben/unten weiche Gradienten in die angrenzenden Sektionsfarben (oben weiss, unten hellblau — wie auf Startseite zwischen Räume und Behandlungen) */
+/* Editorial-Overlap: Bild + überlappende Text-Karte (Magazin-Spread) */
+.editorial-overlap{position:relative;margin:0 auto clamp(40px,6vw,80px);max-width:min(calc(var(--container) - 48px),calc(100vw - 48px))}
+.editorial-overlap__visual{margin:0;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:var(--radius-md)}
+.editorial-overlap__visual img{width:100%;height:100%;object-fit:cover;display:block}
+.editorial-overlap__copy{background:var(--c-surface);padding:clamp(28px,4vw,48px);border-radius:var(--radius-md);box-shadow:0 12px 32px rgba(11,36,68,.12);max-width:min(520px,calc(100% - 64px));margin-top:-80px;margin-left:32px;position:relative;z-index:2}
+.editorial-overlap--reverse .editorial-overlap__copy{margin-left:auto;margin-right:32px}
+.editorial-overlap--full-bleed{max-width:none;width:100vw;margin-left:calc(50% - 50vw)}
+.editorial-overlap--full-bleed .editorial-overlap__copy{margin-left:max(32px,calc((100vw - 1132px) / 2 + 32px))}
+.editorial-overlap__copy h3{font-family:var(--font-display);font-size:clamp(1.4rem,2.4vw,1.9rem);line-height:1.2;margin:.4em 0 .5em;color:var(--c-text)}
+.editorial-overlap__copy .flow-prose{margin:0}
+@media(max-width:768px){
+  .editorial-overlap__copy{margin-top:-40px;margin-left:16px;margin-right:16px;padding:clamp(20px,4vw,32px)}
+  /* aspect-ratio bleibt 16/9 (Base) — sync mit main.css; 4/3-Mobile-Override 2026-05-23 entfernt. */
+  .editorial-overlap--reverse .editorial-overlap__copy{margin-left:16px;margin-right:16px}
+}
+
+.section-divider{position:relative;width:100%;height:120px;overflow:hidden;margin:0;display:block;box-shadow:inset 0 6px 18px -10px rgba(11,36,68,.14),inset 0 -6px 16px -10px rgba(11,36,68,.10)}
+.section-divider img{width:100%;height:100%;object-fit:cover;display:block}
+.section-divider::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.35) 8%,rgba(255,255,255,.08) 18%,transparent 28%,transparent 72%,rgba(232,239,248,.10) 82%,rgba(232,239,248,.40) 92%,#E8EFF8 100%)}
+@media(max-width:560px){.section-divider{height:80px}}
+
+/* @media print und @media (prefers-reduced-motion) sind ans Datei-Ende in @layer overrides verschoben (2026-05-16) */
+
+/* Editorial-Mikro-Ornamente (.has-dropcap, .marginalia) sind ans Datei-Ende in @layer utilities verschoben (2026-05-16) */
+}/* /@layer components */
+
+/* ─── Utilities-Layer ──────────────────────────────────────────────── */
+@layer utilities{
+/* Drop-Cap: Initial-Capital für Editorial-Lead-Paragraphen.
+   Marginalia: italic-Whisper am Rand — inline auf kleineren Schirmen,
+   absolut in die Marginalie geflutet ab 1480px Viewport-Breite. */
+.has-dropcap::first-letter{
+  float:left;
+  font-family:var(--font-display);
+  font-size:4.2rem;
+  line-height:.85;
+  margin:-.05em .15em -.05em 0;
+  color:var(--c-accent-dark);
+  font-weight:500;
+  letter-spacing:-.02em;
+}
+.marginalia{
+  display:block;
+  font-family:var(--font-display);
+  font-style:italic;
+  font-size:.88rem;
+  line-height:1.45;
+  color:var(--c-text-muted);
+  margin:0 0 14px;
+  letter-spacing:.01em;
+}
+@media(min-width:1480px){
+  .marginalia{
+    position:absolute;
+    left:-170px;
+    top:0;
+    width:150px;
+    margin:0;
+    padding-top:.3em;
+    text-align:right;
+  }
+}
+}/* /@layer utilities */
+
+/* ─── Overrides-Layer ──────────────────────────────────────────────── */
+@layer overrides{
+@media print{
+  @page{size:A4;margin:1.8cm}
+  *,*::before,*::after{background:transparent!important;color:#000!important;box-shadow:none!important;text-shadow:none!important}
+  body{font-size:11pt;line-height:1.45;padding:0!important}
+  .skip-link,.notfall-bar,.site-header,.site-footer,.sticky-bar,.trust-banner,.nav,.nav-toggle,.header__phone,.header__cta,.hero__ctas,.cta-banner .btn,.breadcrumb{display:none!important}
+  main{padding:0!important}
+  .section{padding:18pt 0!important;page-break-inside:avoid}
+  h1,h2,h3{page-break-after:avoid;break-after:avoid;color:#000!important}
+  h1{font-size:22pt}h2{font-size:16pt}h3{font-size:13pt}
+  p,li,dd{font-size:11pt;color:#000!important}
+  .info-box,.concept-card{border:1px solid #ccc!important;padding:10pt!important;page-break-inside:avoid;background:#fff!important;color:#000!important}
+  .cta-banner{page-break-inside:avoid}
+  details:not([open])>*:not(summary){display:block!important}
+  .faq-item summary::after{display:none}
+  a[href^="http"]:after,a[href^="tel:"]:after,a[href^="mailto:"]:after{content:" (" attr(href) ")";font-size:.85em;color:#555!important;word-wrap:break-word}
+  a[href^="#"]:after,.brand a:after{content:""}
+  .container{max-width:100%!important;padding:0!important}
+  body::after{content:"Zahnärztehaus Arch — Bürenstrasse 13, 3296 Arch — +41 32 679 37 88";display:block;text-align:center;margin-top:16pt;padding-top:8pt;border-top:1px solid #999;font-size:9pt;color:#555!important}
+}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+}/* /@layer overrides */

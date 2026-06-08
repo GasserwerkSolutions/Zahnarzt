@@ -1,0 +1,1395 @@
+/* assets/main.css
+ *
+ * Geteiltes CSS für die Startseite (index.html).
+ *
+ * Phase 3 (2026-05-10): aus dem Inline-`<style>`-Block extrahiert. Bis dahin
+ * lagen ~580 Zeilen CSS direkt in index.html — was die Truncation-Klasse
+ * von Bugs einlud (siehe Mobile-Nav-Fall vom 2026-05-10) und die HTML-Datei
+ * auf 60 KB aufblähte. Externes File ermöglicht: HTTP-Caching, schmalere
+ * HTML, später CSP-Härtung (`style-src 'self'` ohne 'unsafe-inline').
+ *
+ * Eingebunden mit: <link rel="stylesheet" href="/assets/main.css?v=N">
+ * (N = aktueller Cache-Buster in index.html; bei CSS-Edits dort hochzählen.)
+ *
+ * ─── Cascade-Layer (Schritt 8 / 2026-05-15) ──────────────────────────
+ * Priorität (niedrig → hoch):
+ *   reset       — Universal-Reset (box-sizing).
+ *   base        — Foundation: Tokens, html/body, Typografie, Container,
+ *                 Skip-Link, Focus-Styles.
+ *   components  — Alle namentlichen Bausteine inkl. ihrer Media-Queries.
+ *   utilities   — Helper-Klassen (visually-hidden, section-ornament,
+ *                 dinkus, section-rule, has-dropcap, marginalia).
+ *   overrides   — Globale Modifier (@media print, prefers-reduced-motion).
+ *
+ * Folge: höhere Layer schlägt niedrigere — unabhängig von Spezifität.
+ * Browser-Support: alle modernen Engines seit Frühjahr 2022.
+ */
+
+@layer reset, base, components, utilities, overrides;
+
+@layer reset{
+  *,*::before,*::after{box-sizing:border-box}
+}
+
+@layer base{
+:root{
+  /* ─── Brand-Farben ────────────────────────────────────────────────── */
+  --c-primary:#1A4585;--c-primary-dark:#103260;--c-primary-light:#3C64A5;--c-primary-bg:#E8EFF8;--c-primary-tint:#d6e4df;
+  --c-accent:#c9a66b;--c-accent-dark:#a78854;
+  --c-ink-deep:#0b2444;
+  /* Brand-Identity: CTA Teal (primärer Action-Button universal über alle Seiten).
+     Geändert 2026-05-15 von ehemals schwarzen Buttons; siehe CLAUDE.md. */
+  --c-cta:#134e4a;--c-cta-dark:#0c3531;--c-cta-text:#fafafa;
+  /* Hero-Blau (Header-CTA und Hero-Background) */
+  --c-hero-blue:#1B5BC0;--c-hero-blue-dark:#174DA0;
+  --c-bg:#f3f9f7;--c-bg-warm:#b8d8d0;--c-bg-warm-soft:#d4e8e2;--c-cream:#e0eee9;--c-primary-bg-soft:#F1F5FA;--c-surface:#fff;--c-text:#1f2a24;--c-text-muted:#4a564f;--c-text-light:#6b7269;
+  --c-border:#e3dccc;--c-border-light:#ece5d3;--c-border-strong:#9c917a;
+  --c-emergency-bg:#fef3c7;--c-emergency-text:#78350f;--c-emergency-strong:#9a4709;
+  --c-focus:#1A4585;
+  /* Strukturfarben (Schritt 1 / 2026-05-15): neutral & wiederverwendbar.
+     --c-white: reines Weiss (Surface, Text auf dunklem Grund).
+     --c-footer-bg: Near-Black, in html-bg-Gradient und Footer geteilt.
+     --c-frame-warm: Off-White für 6px-Bildrahmen (intro-spread). */
+  --c-white:#fff;--c-footer-bg:#0d0d0d;--c-frame-warm:#fafafa;
+  /* ─── Radien ──────────────────────────────────────────────────────── */
+  /* Schritt 1 (2026-05-15) ergänzt: --radius-xl (Cards mit Hervorhebung),
+     --radius-pill (Buttons, Badges, Tags) und --radius-circle (Avatars).
+     Vorher waren 24px / 999px / 100px / 50% hardcoded — siehe CLAUDE.md
+     "Cards mit Hervorhebung haben 24px border-radius". */
+  --radius-sm:4px;--radius-md:8px;--radius-lg:12px;--radius-xl:24px;--radius-pill:999px;--radius-circle:50%;
+  /* ─── Shadows ─────────────────────────────────────────────────────── */
+  --shadow-sm:0 1px 2px rgba(10,48,96,.06);--shadow-md:0 4px 16px rgba(10,48,96,.08);--shadow-lg:0 12px 32px rgba(10,48,96,.12);
+  /* Frame-Ring: subtiler 2px-Brand-Ring um Foto-Avatars (team-lead, team-avatar).
+     Schritt 5 (2026-05-15): vorher 2× hardcoded als `0 0 0 2px rgba(11,36,68,.12)`.
+     Token ist box-shadow-kompatibel — beliebig in shadow-Listen kombinierbar. */
+  --shadow-ring-frame:0 0 0 2px rgba(11,36,68,.12);
+  /* Schritt 11 (2026-05-16): zusätzliche Shadow-Tokens für wiederkehrende Patterns.
+     --shadow-badge: brand-blau-getönt, für Pill-Badges (Hero-Badge, Trust-Pills).
+     --shadow-cta: teal-getönt, für CTA-Button-Hover (matched die Brand-CTA-Color).
+     --shadow-frame-photo: dreilagig (Off-White-Frame + tiefer Drop + sharper Inner).
+       Polaroid-Idiom für die Praxis-Bilder im Intro-Spread. */
+  --shadow-badge:0 4px 16px rgba(10,48,96,.18);
+  --shadow-cta:0 4px 16px rgba(19,78,74,.32);
+  --shadow-frame-photo:0 0 0 6px var(--c-frame-warm),0 24px 48px rgba(11,36,68,.18),0 4px 12px rgba(11,36,68,.08);
+  /* ─── Transition-Timing (Item 10 / 2026-05-16) ──────────────────────
+     Vier Buckets statt zuvor 8 verstreuter Werte (.15/.18/.2/.22/.25/.28/.35/.7).
+     --ease-fast: Default für Color-/BG-/Underline-Hover (.2s).
+     --ease-card: Card-Hover mit Lift/Shadow/Border-Color (.25s).
+     --ease-slow: FAQ-Reveal und ähnliche Akkordeons (.35s).
+     --ease-header: Header-„Atmen" beim Scrollen (.7s, weiche Sinuskurve). */
+  --ease-fast:.2s;
+  --ease-card:.25s;
+  --ease-slow:.35s cubic-bezier(.4,0,.2,1);
+  --ease-header:.7s cubic-bezier(.22,.61,.36,1);
+  /* ─── Typografie ──────────────────────────────────────────────────── */
+  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --font-body:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  /* ─── Layout ──────────────────────────────────────────────────────── */
+  --container:1184px;--header-h:64px;--notfall-h:40px;
+  /* ─── Mobile/Touch (Schritt 13 / 2026-05-23) ──────────────────────
+     --tap-min: WCAG-2.5.5 Touch-Target-Minimum (44×44 CSS-px). Nutze
+     für jedes interaktive Element auf Mobile (Burger, Quick-Icons,
+     Sticky-Bar-Cells, Footer-Pills).
+     --safe-bottom: Token für `env(safe-area-inset-bottom)` — iPhone-
+     Home-Indicator-Aussparung. Wird in Sticky-Bar und body padding
+     gleichermassen gebraucht; einmal als Token spart Hardcoding.
+     --vh-100: dvh mit svh-Fallback und vh-Last-Resort. iOS-Address-
+     Bar collapsed/expanded macht 100vh „springen" — dvh hält das
+     Layout ruhig, svh ist die kleinere Variante (sichere Untergrenze). */
+  --tap-min:44px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  /* ─── Editorial-Flow ──────────────────────────────────────────────── */
+  /* Schritt 1 (2026-05-15): aus zweitem :root-Block weiter unten hier
+     eingemergt — Token-Karte war gesplittet. */
+  --section-py-flow:clamp(96px,9vw,160px);
+  --reading-measure:min(720px,92vw);
+  --body-leading-flow:1.75;
+  --item-gap-flow:clamp(40px,5vw,80px);
+  /* ─── Material-Texturen (Schritt 6 / 2026-05-15) ──────────────────── */
+  /* SVG-feTurbulence-Noise als inline-Datenurl. Vorher 2-3× hardcoded;
+     jetzt einmal als Token, beliebig oft via background-image referenziert.
+     --noise-grain: feines isotropes Rauschen (Body-Grain, ~256px Tile).
+     --noise-linen: gerichtete Leinen-Webe (Trustbar + Flow-Closing teilen
+     sich das gleiche Stoff-Idiom für die Warm-Tan-Sektionen). */
+  --noise-grain:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --noise-linen:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1 0.55' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23l)'/%3E%3C/svg%3E");
+}
+/* overscroll-behavior:none verhindert Browser-Bounce (iOS Safari, Android Chrome).
+   html bekommt einen Fixed-2-Tone-Hintergrund: oben var(--c-bg), unten Footer-Schwarz.
+   So zeigt Top-Overscroll die Page-Farbe und Bottom-Overscroll die Footer-Farbe —
+   kein farblicher Bruch bei Bounce-Scrolling. */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + 16px);scroll-padding-bottom:calc(60px + var(--safe-bottom) + 16px);overscroll-behavior:none;overflow-x:hidden;overflow-x:clip;background-color:var(--c-bg);background-image:linear-gradient(180deg,var(--c-bg) 0%,var(--c-bg) 50%,var(--c-footer-bg) 50%,var(--c-footer-bg) 100%);background-attachment:fixed;background-size:100% 100vh;background-repeat:no-repeat}
+/* body auch mit overflow-x:hidden/clip: Belt-and-Suspenders gegen den negative-margin
+   Trick in .praxis-strip Mobile-Variante (margin:0 -20px für full-bleed scroll-snap),
+   der auf alten Android-WebViews durch das html overflow-x:hidden durchschlagen kann.
+   -webkit-tap-highlight-color:transparent: Android-Chrome malt sonst beim Tap einen
+   grauen Rechteck-Highlight über interaktive Elemente. Eigene :active-States
+   (Card-Lift, Button-Darken) sind sauberer und werden überall konsequent genutzt. */
+/* body-Background mit dunkelblauem Top-Streifen (2026-05-28):
+   Der transparente Header (Default-State) sitzt im normalen Document-Flow über
+   dem body-Background. Ohne diesen Gradient zeigt sich das normale --c-bg
+   (off-white) hinter dem Header → weißer Header-Text unsichtbar.
+   Auf Desktop-Index covered das fixed-positionierte Hero-BG diesen Bereich, dort
+   ist der Gradient unsichtbar (Hero malt drüber). Auf Mobile-Index (Hero absolute
+   nicht fixed wegen iOS-Holpern) und auf allen Subpages ist der Gradient sichtbar
+   und liefert den dunklen Hintergrund für den transparenten Header.
+   240px Höhe deckt notfall-bar + header + Buffer bis .is-scrolled triggert. */
+body{margin:0;font-family:var(--font-body);font-size:18px;line-height:1.78;color:var(--c-text);background-color:var(--c-bg);background-image:linear-gradient(180deg,var(--c-hero-blue) 0,var(--c-hero-blue) 240px,transparent 240px);background-repeat:no-repeat;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-optical-sizing:auto;font-weight:400;overscroll-behavior:none;overflow-x:hidden;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+/* Mobile-Nav-Drawer offen → Body-Scroll lock. Verhindert Hintergrund-Scroll während
+   das Drawer-Menü offen ist (sonst „rutscht" die ganze Seite weg bei Drawer-Tap).
+   Wird in common.js gesetzt/entfernt am <body>. position:fixed mit aktueller scroll-Y
+   wäre robuster für iOS, aber kostet Scroll-Position-Restore-Code — overflow:hidden
+   reicht für Android und neuere iOS-Versionen (iOS 16+, das ist 99%+ unserer Zielgruppe).
+   Wichtig: KEIN touch-action:none hier — das würde Touch-Scroll im Drawer (.nav.is-open)
+   blockieren, weil touch-action auf einem Ancestor descendant-Scrolls verhindert, sofern
+   das Descendant nicht touch-action:auto/pan-y explizit zurücksetzt. overflow:hidden
+   allein reicht für Background-Scroll-Lock und bricht das Drawer-Scrolling nicht. */
+body.has-nav-open{overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background-image:var(--noise-grain);opacity:.022;pointer-events:none;z-index:9999;mix-blend-mode:multiply}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;letter-spacing:-.025em;text-wrap:balance;color:var(--c-text);margin:0 0 .6em}
+h1{font-size:clamp(2.2rem,5vw,3.6rem)}
+h2{font-size:clamp(1.8rem,3.5vw,2.6rem)}
+h3{font-size:1.35rem}
+h4{font-size:1.1rem}
+p{margin:0 0 1em;-webkit-hyphens:auto;hyphens:auto;-webkit-hyphenate-limit-chars:8 4 4;hyphenate-limit-chars:8 4 4}
+a{color:var(--c-primary);text-decoration:none;transition:color var(--ease-fast)}
+a:hover{color:var(--c-primary-dark)}
+/* Inline-Links in Fliesstext bekommen Underline (axe-core / Modul 02) — gezielt, nicht in Navigation/Cards/Lists */
+p a,dd a,figcaption a,.faq-item__body a,.form__check a,.footer-bottom span a,.notfall-bar a,.faq-bottom a{text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+p a:hover,dd a:hover,figcaption a:hover,.faq-item__body a:hover,.form__check a:hover{text-decoration-thickness:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--c-focus);outline-offset:3px;border-radius:var(--radius-sm)}
+img,svg{max-width:100%;display:block}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px}
+
+/* Skip-Link: vorher `left:-9999px` für Off-Screen — das erweitert auf alten Android-
+   WebViews die scrollable Page-Width und produziert horizontalen Overflow (User kann
+   rauszoomen). Ersetzt durch `transform:translateY(-120%)`: rein VERTIKALES Versteck,
+   keine Page-Width-Erweiterung möglich. */
+.skip-link{position:fixed;top:8px;left:8px;background:var(--c-primary);color:var(--c-white);padding:16px 24px;z-index:1000;font-weight:600;transform:translateY(-120%);transition:transform var(--ease-fast);border-radius:var(--radius-sm);min-height:48px;display:inline-flex;align-items:center}
+.skip-link:focus{transform:translateY(0);color:var(--c-white)}
+}/* /@layer base */
+
+@layer components{
+.notfall-bar{background:#fde68a;color:var(--c-emergency-text);border-bottom:1px solid #f59e0b;transition:transform var(--ease-card) ease;position:relative;z-index:60}
+/* is-hidden: visuell off-screen UND interaktiv tot. inert (via JS) verhindert
+   Tab-Focus auf den unsichtbaren Notfall-Link. pointer-events:none als Belt-and-
+   Suspenders gegen Edge-Cases (z.B. wenn inert auf alten Browsern noch nicht
+   unterstützt wird — Safari 15.4-, Firefox 111-). */
+.notfall-bar.is-hidden{transform:translateY(-100%);pointer-events:none}
+.notfall-bar__inner{display:flex;align-items:center;justify-content:center;gap:16px;height:var(--notfall-h);font-size:.92rem;font-weight:500;text-align:center}
+.notfall-bar__inner svg{flex-shrink:0}
+.notfall-bar a{color:var(--c-emergency-strong);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.notfall-bar a:hover{color:var(--c-emergency-text)}
+
+/* Header (2026-05-23 Redesign):
+   Default = TRANSPARENT mit weißem Text — sitzt elegant über dem dunkelblauen
+   Hero ohne ihn zu schneiden. Beim Scrollen ab 80px (gesetzt via .is-scrolled
+   in common.js) opacifiziert er zu hellem Off-White mit dunklem Text — sobald
+   der User in weiße Sections scrollt, braucht's einen klaren Rahmen für
+   Lesbarkeit.
+
+   CSS-Variablen --header-fg / --header-bg / --header-border werden auf
+   .site-header gesetzt und propagieren via Inheritance (color) bzw. explizit
+   referenziert (bg/border) an alle Header-Children. Spart 8-10 individuelle
+   Override-Selektoren für nav, brand, phone, toggles etc.
+
+   Ein zusätzlicher Trigger (body.has-nav-open) erzwingt den opaque-State —
+   sonst hängt das Mobile-Drawer-Menü (weisser BG) unter einem transparenten
+   Header über dem Hero, was visuell zerbrochen aussieht. */
+.site-header{
+  --header-fg:var(--c-white);
+  --header-bg:transparent;
+  --header-border:rgba(255,255,255,.18);
+  position:sticky;top:0;z-index:50;
+  background:var(--header-bg);
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--header-border);
+  color:var(--header-fg);
+  /* Asymmetrisches Transition-Timing löst den „Blink"-Effekt beim Scroll-Hoch:
+     Wenn Text und Background gleichzeitig (linear, 700ms) faden, durchlaufen
+     sie beide in der Mitte einen grau-auf-grau-Zustand → Text kurz unsichtbar.
+     Going-to-default (Scroll hoch): color hat 350ms Delay → Text bleibt 350ms
+     DUNKEL während BG bereits zu transparent fadet, dann schnappt Text in den
+     letzten 350ms zu weiss um — über dem dann dunklen Hero gut lesbar.
+     Going-to-scrolled (Scroll runter): siehe .is-scrolled-Block — kein Delay,
+     Text wechselt schnell zu dunkel während BG langsam opacifiziert. */
+  transition:
+    background-color var(--ease-header),
+    backdrop-filter var(--ease-header),
+    border-color var(--ease-header),
+    color 350ms ease 350ms;
+  will-change:background-color
+}
+.site-header.is-scrolled,
+body.has-nav-open .site-header{
+  --header-fg:var(--c-text);
+  --header-bg:rgba(250,250,249,.92);
+  --header-border:var(--c-border);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  /* Beim Übergang in den scrolled-State: color schnell (200ms, kein Delay) — Text
+     wird sofort dunkel während BG noch fadet. So bleibt dunkler Text vor dem noch
+     blauen Hero kurz sichtbar bevor der weisse BG eintrifft. */
+  transition:
+    background-color var(--ease-header),
+    backdrop-filter var(--ease-header),
+    border-color var(--ease-header),
+    color 200ms ease;
+}
+.site-header__inner{display:flex;align-items:center;gap:24px;padding-top:8px;padding-bottom:8px;min-height:var(--header-h)}
+/* Brand: zwei Logo-Varianten gestapelt, Crossfade per opacity beim Scroll.
+   --light = weisse Version für transparenten Default-State über Dunkel-Hero
+   --dark = farbige Version für gescrollten Off-White-Header.
+   Position:absolute auf dark, damit beide deckungsgleich gestapelt sind. */
+.brand{display:flex;align-items:center;flex-shrink:0;color:inherit;position:relative}
+.brand:hover{opacity:.85}
+.brand__logo{height:40px;width:auto;display:block;transition:opacity var(--ease-header)}
+.brand__logo--dark{position:absolute;top:50%;left:0;transform:translateY(-50%);opacity:0}
+.site-header.is-scrolled .brand__logo--light,
+body.has-nav-open .site-header .brand__logo--light{opacity:0}
+.site-header.is-scrolled .brand__logo--dark,
+body.has-nav-open .site-header .brand__logo--dark{opacity:1}
+.nav{display:flex;align-items:center;gap:8px;flex:1}
+.nav__list{display:flex;gap:0;list-style:none;margin:0;padding:0}
+/* Nav-Links erben color vom Header-Theme via inherit. Bewusst KEIN
+   transition:color hier — sonst kollidiert die 200ms-Child-Transition mit der
+   asymmetrisch-getakteten Parent-Color-Transition (Inherit retriggert die Child-
+   Transition bei jedem Animationsframe → sichtbares Flackern). Background-Color
+   bleibt eigene 200ms-Transition für Hover-Feedback. */
+.nav__list a{display:block;padding:8px 16px;color:inherit;font-weight:500;font-size:.95rem;border-radius:var(--radius-sm);transition:background-color var(--ease-fast)}
+.nav__list a:hover{background:rgba(255,255,255,.12);color:var(--header-fg)}
+.site-header.is-scrolled .nav__list a:hover,
+body.has-nav-open .site-header .nav__list a:hover{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+/* Dropdown-Items: Hover/Focus-Within enthüllt sub-Menü. Sub-Menü ist absolut
+   positioniert mit subtilem Slide-In. Mobile: Submenüs inline ohne Flyout. */
+.nav__item--has-sub{position:relative}
+.nav__item--has-sub > a{display:inline-flex;align-items:center;gap:8px}
+/* Nav-Icons: explizite Endwerte (weiss / brand-blau) + Stagger-Timing exakt zur
+   Parent-Color-Transition synchronisiert. Vorher: color:currentColor + 200ms-Child-
+   transition → Parent-Color-Animation retriggerte die Child-Transition bei jedem
+   Frame, sichtbares Icon-Flackern beim Scroll-Hoch. Mit konkreten Endwerten +
+   gleichem Timing wie .site-header läuft die Animation deterministisch. */
+.nav__icon{display:inline-block;flex-shrink:0;color:var(--c-white);opacity:.85;transition:opacity var(--ease-fast),color 350ms ease 350ms}
+.site-header.is-scrolled .nav__icon,
+body.has-nav-open .site-header .nav__icon{color:var(--c-primary);transition:opacity var(--ease-fast),color 200ms ease}
+.nav__item--has-sub > a:hover .nav__icon,
+.nav__item--has-sub:focus-within .nav__icon{opacity:1}
+.nav__caret{display:inline-block;flex-shrink:0;opacity:.65;transition:transform var(--ease-fast) ease,opacity var(--ease-fast) ease}
+.nav__item--has-sub:hover .nav__caret,
+.nav__item--has-sub:focus-within .nav__caret{transform:rotate(180deg);opacity:1}
+.nav__sub{position:absolute;top:100%;left:0;min-width:240px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px 0;margin:8px 0 0;list-style:none;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity var(--ease-fast) ease,transform var(--ease-fast) ease,visibility 0s linear var(--ease-fast);z-index:60}
+.nav__item--has-sub:hover .nav__sub,
+.nav__item--has-sub:focus-within .nav__sub{opacity:1;visibility:visible;transform:translateY(0);transition-delay:0s}
+.nav__sub a{display:block;padding:8px 16px;font-size:.92rem;font-weight:500;color:var(--c-text);border-radius:0;white-space:nowrap}
+.nav__sub a:hover{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+/* Header-Phone: explizite Color-Endwerte + Stagger sync mit Parent (siehe nav__icon
+   Note oben). Vorher hatte color:currentColor + 200ms-Child-transition mit dem
+   .is-scrolled-Override eine identische Race-Condition wie nav__icon. */
+.header__phone{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;margin-left:auto;color:var(--c-white);font-weight:500;font-size:.95rem;border:1px solid var(--header-border);border-radius:var(--radius-pill);transition:background-color var(--ease-fast),border-color var(--ease-fast),color 350ms ease 350ms}
+.header__phone:hover{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .header__phone,
+body.has-nav-open .site-header .header__phone{color:var(--c-primary);transition:background-color var(--ease-fast),border-color var(--ease-fast),color 200ms ease}
+.site-header.is-scrolled .header__phone:hover,
+body.has-nav-open .site-header .header__phone:hover{background:var(--c-primary-bg);border-color:var(--c-accent-dark);color:var(--c-primary-dark)}
+.header__cta{margin-left:8px;background:var(--c-hero-blue);border-color:var(--c-hero-blue);color:var(--c-white)}
+.header__cta:hover{background:var(--c-hero-blue-dark);border-color:var(--c-hero-blue-dark);color:var(--c-white)}
+/* nav-toggle: 44×44 sync mit subpages.css (--tap-min), 22×22 SVG entsprechend.
+   Vorher 48/24 — driftete gegenüber den 9 Subpages, sichtbar beim Page-Wechsel.
+   Color + border erben vom Header-Theme: weiss auf transparent, dunkel auf opaque. */
+.nav-toggle{display:none;background:none;border:1px solid var(--header-border);width:var(--tap-min);height:var(--tap-min);border-radius:var(--radius-sm);cursor:pointer;margin-left:auto;align-items:center;justify-content:center;touch-action:manipulation;-webkit-user-select:none;user-select:none;color:currentColor;transition:background-color var(--ease-fast),border-color var(--ease-fast)}
+.nav-toggle:hover,.nav-toggle:focus-visible{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .nav-toggle:hover,
+.site-header.is-scrolled .nav-toggle:focus-visible,
+body.has-nav-open .site-header .nav-toggle:hover,
+body.has-nav-open .site-header .nav-toggle:focus-visible{background:var(--c-primary-bg);border-color:var(--c-primary)}
+/* pointer-events:none auf SVG → der Button-Click wird nicht vom inneren SVG „gefangen",
+   sondern erreicht zuverlässig den <button> selbst (einige ältere Engines bubbeln nicht
+   sauber aus SVG-Subtree). */
+.nav-toggle svg{width:22px;height:22px;stroke:currentColor;pointer-events:none}
+/* Aria-expanded → Background highlight als visuelles Feedback. Eine SVG-Icon-Rotation
+   (z.B. 90°) wurde überlegt aber wieder verworfen — eine 90°-Drehung der drei horizontalen
+   Linien sieht aus wie ein „Pause"-Symbol, nicht wie „Close". Der geöffnete Drawer
+   ist der eindeutigste State-Indikator. */
+.nav-toggle[aria-expanded="true"]{background:var(--c-primary-bg);border-color:var(--c-primary);color:var(--c-primary)}
+/* Mobile Quick-Access-Icons: zwei Buttons zwischen Logo und Hamburger.
+   Theme-aware: weisser Border auf transparent, dunkler auf opaque-Header. */
+.nav-quick{display:none;background:none;border:1px solid var(--header-border);width:var(--tap-min);height:var(--tap-min);border-radius:var(--radius-sm);cursor:pointer;align-items:center;justify-content:center;color:currentColor;transition:background-color var(--ease-fast),border-color var(--ease-fast);touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.nav-quick svg{width:22px;height:22px;stroke:currentColor}
+.nav-quick:hover,.nav-quick:focus-visible{background:rgba(255,255,255,.12);border-color:currentColor}
+.site-header.is-scrolled .nav-quick:hover,
+.site-header.is-scrolled .nav-quick:focus-visible,
+body.has-nav-open .site-header .nav-quick:hover,
+body.has-nav-open .site-header .nav-quick:focus-visible{background:var(--c-primary-bg);color:var(--c-primary);border-color:var(--c-primary)}
+/* Quick-Access-Panel: kleines Mini-Dropdown unter den Icons mit nur den
+   relevanten Sub-Links. Versteckt by default, .is-open zeigt es an. */
+.nav-quick-panel{display:none;position:absolute;top:100%;right:24px;margin-top:8px;min-width:240px;max-width:calc(100vw - 48px);background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px 0;z-index:55;opacity:0;transform:translateY(-4px);transition:opacity var(--ease-fast) ease,transform var(--ease-fast) ease}
+.nav-quick-panel.is-open{display:block;opacity:1;transform:translateY(0)}
+.nav-quick-panel ul{list-style:none;margin:0;padding:0}
+.nav-quick-panel a{display:block;padding:12px 20px;color:var(--c-text);font-size:.95rem;font-weight:500;text-decoration:none;transition:background-color var(--ease-fast),color var(--ease-fast)}
+.nav-quick-panel a:hover,.nav-quick-panel a:focus-visible{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+.nav-quick-panel a[aria-current="page"]{background:var(--c-primary-bg);color:var(--c-primary-dark)}
+
+/* touch-action:manipulation: deaktiviert Double-Tap-to-Zoom auf Buttons (300ms-Delay-
+   Vermeidung historisch, heute eher Komfort) und verhindert Pan/Zoom-Gesten, die auf
+   einem Tap-Button störend wären. Pan-Y bleibt erlaubt, Pinch-Zoom auf Page-Level auch. */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 24px;font-family:var(--font-body);font-weight:500;font-size:.95rem;border-radius:var(--radius-md);border:1px solid transparent;cursor:pointer;transition:all var(--ease-fast);text-decoration:none;min-height:48px;line-height:1.2;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.btn--primary{background:var(--c-cta);color:var(--c-cta-text);border-color:var(--c-cta)}
+.btn--primary:hover{background:var(--c-cta-dark);border-color:var(--c-cta-dark);color:var(--c-cta-text);transform:translateY(-1px);box-shadow:var(--shadow-cta)}
+.btn--ghost{background:transparent;color:var(--c-cta);border-color:var(--c-cta)}
+.btn--ghost:hover{border-color:var(--c-cta-dark);background:rgba(19,78,74,.06);color:var(--c-cta-dark)}
+.btn--accent{background:var(--c-accent);color:var(--c-white)}
+.btn--accent:hover{background:var(--c-accent-dark);color:var(--c-white)}
+.btn--block{width:100%}
+/* Anfrage-Submit: nur Grössen-Override — Farbe/Radius kommen jetzt vom globalen .btn--primary */
+#anfrage-submit{padding:16px 32px;font-weight:600;font-size:1rem;letter-spacing:.01em}
+#anfrage-submit:disabled{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* position:relative + isolation: erzwingt eigenen Stacking-Context, damit
+   die Section über die viewport-fixed Hero-BG malt. Ohne das würde die
+   Hero-BG durch transparente Section-Default-Hintergründe durchscheinen. */
+.section{padding:clamp(48px,5vw,80px) 0;position:relative;isolation:isolate;background:var(--c-bg)}
+.section--alt{background:var(--c-primary-bg)}
+/* Kompakte Section-Variante — z.B. für Standort, der knapp und funktional bleiben soll. */
+.section--compact{padding:clamp(32px,4vw,56px) 0}
+.section--tint{background:var(--c-bg-warm)}
+.section--cream{background:var(--c-cream)}
+.section--dark{background:var(--c-ink-deep);color:#f4ede1}
+.section--dark .section-head h2{color:var(--c-white)}
+.section--dark .section-head__eyebrow{color:var(--c-accent)}
+.section--dark .section-head__eyebrow::before{background:var(--c-accent)}
+.section--dark .section-head p{color:#c0c8c2}
+.section-head{max-width:720px;margin:0 0 clamp(32px,3.5vw,48px);position:relative}
+/* Tight-Variante: halbierter Bottom-Abstand und leicht erhöhter Top-Abstand
+   für Sektionen, in denen die Cards/Content unmittelbar nach dem Title folgen
+   sollen (z.B. Triage). */
+.section-head--tight{margin-top:clamp(16px,1.5vw,24px);margin-bottom:clamp(16px,1.75vw,24px)}
+/* section-head--slot: Section-Head bekommt die Breite EINES Triage-Card-Slots.
+   Visuell wie ein unsichtbares Card-Feld — Text alignt mit der 1-von-3-Geometrie. */
+@media(min-width:980px){
+  .section-head--slot{max-width:calc((100% - 2 * clamp(32px,5vw,72px)) / 3)}
+}
+.section-head--centered{margin-left:auto;margin-right:auto;text-align:center}
+/* ─── Eyebrow-Pattern (Schritt 4 / 2026-05-15) ──────────────────────
+   Geteilte Basis für die 4 Eyebrows mit 32×1px-Akzent-Strich:
+   .section-head__eyebrow, .hero__eyebrow, .trustbar__eyebrow, .flow-eyebrow.
+   Vorher waren diese in 4 separaten Blöcken dupliziert mit Drift:
+     letter-spacing .12em (section-head/hero) vs .14em (trustbar/flow)
+     font-size .82rem (section-head/hero) vs .8rem (trustbar/flow)
+     gap 16px (section-head/hero/trustbar) vs 12px (flow)
+   Standardisiert auf .82rem · letter-spacing .14em · gap 16px. Das mehr-
+   tracking (14% statt 12%) passt zur „hand-set typography"-Idiom (Z. 246)
+   und atmet bei der kleinen Versal-Grösse besser neben dem 32px-Strich.
+   .intro-spread__eyebrow bleibt absichtlich separat (kleiner, ohne Linie).
+   ──────────────────────────────────────────────────────────────────── */
+.section-head__eyebrow,
+.hero__eyebrow,
+.trustbar__eyebrow,
+.flow-eyebrow{display:inline-flex;align-items:center;gap:16px;font-family:var(--font-body);font-size:.82rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-primary);margin-bottom:16px}
+.section-head__eyebrow::before,
+.hero__eyebrow::before,
+.trustbar__eyebrow::before,
+.flow-eyebrow::before{content:"";width:32px;height:1px;background:var(--c-accent-dark)}
+/* Margin-Modifier: Hero und Flow brauchen mehr Atemraum vor der grossen H1/H2 */
+.hero__eyebrow,
+.flow-eyebrow{margin-bottom:24px}
+/* Centered-Section-Head verbirgt den führenden Strich (zentrierter Text) */
+.section-head--centered .section-head__eyebrow::before{display:none}
+.section-head h2{margin:0 0 16px}
+.section-head p{color:var(--c-text-muted);font-size:1.1rem;margin:0}
+
+.hero{padding:64px 0 56px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(904px 504px at 85% 20%,var(--c-primary-bg) 0%,transparent 60%),radial-gradient(704px 400px at 0% 90%,rgba(184,150,90,.08) 0%,transparent 55%)}
+.hero__grid{display:grid;grid-template-columns:1.1fr .9fr;gap:72px;align-items:center}
+/* .hero__eyebrow + ::before sind ins geteilte Eyebrow-Pattern oben gemergt (2026-05-15) */
+.hero h1{margin-bottom:.4em}
+.hero__sub{font-size:1.2rem;color:var(--c-text-muted);max-width:520px;margin-bottom:40px}
+.hero__ctas{display:flex;gap:16px;flex-wrap:wrap}
+.hero__visual{position:relative;aspect-ratio:4/5;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(140deg,var(--c-primary) 0%,var(--c-primary-dark) 100%);box-shadow:var(--shadow-lg);max-width:480px;margin:0 auto;width:100%}
+.hero__visual::before{content:"";display:block;padding-bottom:125%}
+.hero__visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hero__visual::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,48,96,.35) 0%,transparent 25%,transparent 75%,rgba(10,48,96,.25) 100%);pointer-events:none}
+.hero__visual-inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;padding:40px;color:var(--c-white)}
+.hero__badge{align-self:flex-start;background:var(--c-white);color:var(--c-primary);padding:8px 16px;border-radius:var(--radius-pill);font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-badge)}
+.hero__badge-dot{width:8px;height:8px;border-radius:var(--radius-circle);background:var(--c-accent);display:inline-block;flex-shrink:0}
+.hero__caption{font-family:var(--font-display);font-size:1.3rem;line-height:1.3;position:relative}
+.hero__caption small{display:block;font-family:var(--font-body);font-size:.85rem;opacity:.75;margin-top:8px;font-weight:400}
+
+/* Hero — Vollbild-Variante (Mainsite)
+   ──────────────────────────────────────────────────────────────────────
+   Min-Height via clamp() statt min()-mit-Breakpoint-Overrides (2026-05-23):
+     Vorher:  >980  → min(680, 100dvh-80)
+              ≤980  → min(560, 100dvh-80) max-height:none
+              ≤560  → calc(100dvh-72)
+     Problem: am 980-Breakpoint Höhe-Sprung 680→560 (-120px), am 560-Breakpoint
+     560→full-vh (+200px auf typischem Phone). Beim DevTools-Resize spürbar.
+   Jetzt: einheitlich clamp(540, 100dvh-80, 720) — smoothe Skalierung über alle
+     Viewport-Höhen. Untere Schranke 540 = funktioniert auf kurzen Landscape-
+     Phones; obere Schranke 720 = angenehme Proportion auf Desktop.
+
+   overflow:hidden ist Pflicht, weil hero__bg + hero__overlay auf Mobile zu
+   position:absolute switchen — ohne hidden würden sie überlaufen.
+   ────────────────────────────────────────────────────────────────────── */
+.hero--fullbleed{padding:0;position:relative;min-height:clamp(540px,calc(100vh - 80px),720px);min-height:clamp(540px,calc(100dvh - 80px),720px);display:flex;align-items:center;background:var(--c-hero-blue);overflow:hidden}
+.hero--fullbleed::before{display:none}
+/* Hero-BG ist viewport-fixed → Page scrollt darüber. Subsequent Sections
+   müssen Stacking-Context haben (position:relative + isolation), damit sie
+   über die fixed Schicht malen. Siehe `.section`-Regel weiter unten. */
+/* Kein z-index auf BG und Overlay: bewusst auf z-index:auto belassen.
+   Damit landen sie im Stacking-Step 5 (auto, in DOM-Reihenfolge gemalt).
+   Alle nachfolgenden Sections sind ebenfalls Step 5 und kommen DOM-mässig
+   später → sie malen über die fixed Overlay-Schicht. Wäre z-index:1 gesetzt,
+   würden die Sections in Step 5 hinter der Overlay liegen. */
+/* width:100vw → left:0+right:0: viewport-relative ohne Scrollbar-Inklusion und ohne
+   100vw-Interpretation auf alten Engines (manche Android-WebViews behandeln 100vw als
+   "device-width inkl. Scrollbar", was horizontalen Overflow erzeugt). */
+.hero--fullbleed .hero__bg{position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;overflow:hidden;pointer-events:none}
+/* object-position via aspect-ratio Media-Queries (2026-05-23, ersetzte vorherige
+   JS-Implementation in main.js). Daniela sitzt im Quellbild bei ~86%/42% — wir
+   schieben sie aspect-abhängig so, dass sie immer im rechten Klartextraum landet
+   (der Brand-Overlay verdeckt linke ~80% des Hero). Vier Buckets, mapping zu den
+   Original-JS-Konstanten:
+     - Ultrawide (>=18/10): x=90% y=45% (Bild-Fokus weit nach rechts)
+     - Standard-Landscape (Default 13/10 – 18/10): x=86% y=42%
+     - Tablet square-ish (1/1 – 13/10): x=78% y=36%
+     - Portrait Mobile (<=1/1): x=70% y=28% (Kopf nicht abgeschnitten) */
+.hero--fullbleed .hero__bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:86% 42%;display:block}
+@media (min-aspect-ratio:18/10){
+  .hero--fullbleed .hero__bg img{object-position:90% 45%}
+}
+@media (max-aspect-ratio:13/10) and (min-aspect-ratio:1/1){
+  .hero--fullbleed .hero__bg img{object-position:78% 36%}
+}
+@media (max-aspect-ratio:1/1){
+  .hero--fullbleed .hero__bg img{object-position:70% 28%}
+}
+/* ┌─────────────────────────────────────────────────────────────────────┐
+   │ HERO OVERLAY (Desktop)                                              │
+   │                                                                     │
+   │ Vier gestapelte Layer (oben → unten in der background-Stack):       │
+   │                                                                     │
+   │ 1) Diagonal 225° — leichte Eindunkelung von oben-rechts. Schiebt    │
+   │    das visuelle Gewicht zur unten-links Seite wo die H1 sitzt.      │
+   │    Alpha 0.14 → 0.04 → transparent. Subtil, nur als Atmosphäre.     │
+   │                                                                     │
+   │ 2) Vertikaler Tint 0° — Vignetten-Effekt mit U-Kurve:              │
+   │    Oben 0.08 (leichter Hut), Mitte bei 40% nur 0.03 (Foto atmet),   │
+   │    Unten 0.26 (klare Vignette, verankert nach Triage-Section).      │
+   │                                                                     │
+   │ 3) Horizontal 90° — die HAUPT-Brand-Schicht. Links bei #1B5BC0      │
+   │    Alpha 0.771 für H1-Lesbarkeit (AAA-Kontrast), fade nach rechts   │
+   │    bis transparent bei 80%. Werte sind 82% der originalen Stärke    │
+   │    (Original-Peak war 0.94; 0.94 × 0.82 = 0.771).                   │
+   │                                                                     │
+   │ 4) Vertikaler Bottom-Brand 0° — zusätzlicher Brand-Tint am unteren  │
+   │    Bildrand (0.18 → 0.049 → transparent bei 50%). Layert auf die    │
+   │    Vignette aus Layer 2 für einen brand-gefärbten Schluss.          │
+   │                                                                     │
+   │ Position: fixed → bleibt beim Scrollen sichtbar (parallax-artig).   │
+   │ Pointer-events: none → keine Click-Interception.                    │
+   │                                                                     │
+   │ Tuning-Hinweis: Wenn die Overlay-Stärke geändert werden soll,       │
+   │ multipliziere Layer 3 (Hauptschicht) und Layer 4 mit dem gewünschten│
+   │ Faktor. Layer 1 und 2 sind atmosphärische Konstanten und sollten    │
+   │ nicht mit-skaliert werden.                                          │
+   └─────────────────────────────────────────────────────────────────────┘ */
+.hero--fullbleed .hero__overlay{position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;pointer-events:none;background:linear-gradient(225deg,rgba(15,42,80,.14) 0%,rgba(15,42,80,.04) 35%,transparent 55%),linear-gradient(0deg,rgba(15,42,80,.08) 0%,rgba(15,42,80,.03) 40%,rgba(15,42,80,.26) 100%),linear-gradient(90deg,rgba(27,91,192,.771) 0%,rgba(27,91,192,.738) 12%,rgba(27,91,192,.64) 26%,rgba(27,91,192,.451) 40%,rgba(27,91,192,.246) 54%,rgba(27,91,192,.082) 68%,transparent 80%),linear-gradient(0deg,rgba(27,91,192,.18) 0%,rgba(27,91,192,.049) 22%,transparent 50%)}
+.hero--fullbleed .hero__container{position:relative;z-index:2;width:100%;padding-top:clamp(80px,8vw,120px);padding-bottom:clamp(80px,8vw,120px)}
+.hero--fullbleed .hero__content{max-width:824px;display:flex;flex-direction:column;align-items:flex-start}
+.hero--fullbleed .hero__eyebrow{color:rgba(255,255,255,.92);margin-bottom:32px;letter-spacing:.14em;font-weight:600}
+.hero--fullbleed .hero__eyebrow::before{background:var(--c-accent);opacity:1;width:32px;height:1px}
+/* Spielerische H1: zwei Zeilen, zweite eingerückt, deutlich grösser als zuvor.
+   Linie 2 startet leicht versetzt nach rechts (hand-set-typography-Idiom). */
+.hero--fullbleed h1{color:var(--c-white);margin-bottom:.4em;font-weight:600;letter-spacing:-.035em;font-size:clamp(3.2rem,9vw,7rem);line-height:.95}
+.hero__line{display:block}
+.hero__line--2{margin-left:clamp(40px,7vw,120px);margin-top:.05em}
+.hero__accent{background:linear-gradient(180deg,transparent 62%,rgba(201,166,107,.55) 62%,rgba(201,166,107,.55) 92%,transparent 92%);padding:0 .12em}
+.hero--fullbleed .hero__sub{color:rgba(255,255,255,.92);font-size:1.25rem;max-width:544px;margin-bottom:48px;font-weight:300;letter-spacing:.005em;line-height:1.7}
+.hero--fullbleed .hero__ctas{margin-bottom:16px}
+.hero--fullbleed .btn--primary{background:var(--c-white);border-color:var(--c-white);color:var(--c-primary)}
+.hero--fullbleed .btn--primary:hover{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.92);color:var(--c-primary-dark)}
+.hero--fullbleed .btn--ghost{background:transparent;color:var(--c-white);border-color:rgba(255,255,255,.55)}
+.hero--fullbleed .btn--ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.85);color:var(--c-white)}
+.hero--fullbleed .hero__badge{background:var(--c-white);color:var(--c-primary);padding:8px 16px;border-radius:var(--radius-pill);font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);width:fit-content}
+.hero--fullbleed .hero__badge-dot{width:8px;height:8px;border-radius:var(--radius-circle);background:var(--c-accent);display:inline-block;flex-shrink:0}
+@media (max-width:980px){
+  /* min-height kommt jetzt einheitlich aus dem Base-Block (clamp). Kein
+     Width-basierter Override mehr — vermeidet den 980-Sprung. */
+
+  /* overflow:visible damit hero__bg + hero__overlay nach OBEN hinter den
+     Header ragen können (siehe Note unten). Default war overflow:hidden, blieb
+     auf Desktop wo bg via position:fixed sowieso viewport-cover ist. */
+  .hero--fullbleed{overflow:visible}
+
+  /* HERO-HOLPERN-FIX (2026-05-23): hero__bg + hero__overlay sind auf Mobile
+     position:absolute statt fixed — iOS-Safari hatte mit fixed + 100dvh ein
+     Holpern beim Address-Bar-Collapse. Parallax entfällt auf Mobile, akzeptabel.
+     ────────────────────────────────────────────────────────────────────────
+     EXTEND BEHIND HEADER (2026-05-28): top: calc(-1 * var(--header-h)) zieht
+     den BG nach oben, sodass er den Bereich HINTER dem Header abdeckt. Damit
+     ist der transparente Header tatsächlich transparent — zeigt das echte
+     Hero-Bild durch, nicht ein solid-blue Body-Gradient. Notfall-Bar oben
+     bleibt sichtbar (eigenes opakes Yellow, z-index 60). */
+  .hero--fullbleed .hero__bg,
+  .hero--fullbleed .hero__overlay{position:absolute;top:calc(-1 * var(--header-h));left:0;right:0;bottom:0;height:auto}
+  /* object-position via aspect-ratio Queries oben — kein Width-Override mehr nötig. */
+  /* Mobile-Overlay: Hauptbrand-Schicht (Layer 3) vertikal statt horizontal —
+     H1 oben links, Foto darunter, vertikaler Verlauf passt zum Hochformat.
+     Bottom-Vignette leicht stärker (.28 statt .26). */
+  .hero--fullbleed .hero__overlay{background:linear-gradient(225deg,rgba(15,42,80,.13) 0%,rgba(15,42,80,.035) 35%,transparent 55%),linear-gradient(0deg,rgba(15,42,80,.08) 0%,rgba(15,42,80,.03) 40%,rgba(15,42,80,.28) 100%),linear-gradient(0deg,rgba(27,91,192,.771) 0%,rgba(27,91,192,.697) 12%,rgba(27,91,192,.508) 30%,rgba(27,91,192,.262) 50%,rgba(27,91,192,.082) 70%,transparent 85%),linear-gradient(90deg,rgba(27,91,192,.148) 0%,transparent 48%)}
+  .hero--fullbleed .hero__container{padding-top:clamp(120px,18vw,200px);padding-bottom:clamp(40px,6vw,56px);display:flex;align-items:flex-end;min-height:inherit}
+  .hero--fullbleed .hero__content{max-width:none}
+}
+@media (max-width:560px){
+  /* min-height + padding-top kommen jetzt einheitlich aus den clamp()-Regeln
+     oben — kein 560-Breakpoint-Sprung mehr (siehe Audit 2026-05-23). */
+  /* H1: clamp(2.6rem, 11vw, 4rem). Bei 320px ergibt 11vw = 35.2px → max(2.6rem=46.8px, 35.2)
+     = 46.8px. Auf iPhone-5/SE-Klasse-Geräten (320px) bleibt die zweizeilige H1 lesbar
+     ohne den Container zu sprengen. */
+  .hero--fullbleed h1{font-size:clamp(2.6rem,11vw,4rem);white-space:normal;line-height:.92}
+  .hero__line--2{margin-left:clamp(20px,5vw,40px)}
+  .hero--fullbleed .hero__sub{font-size:1rem;margin-bottom:24px;line-height:1.55}
+  .hero--fullbleed .hero__ctas{flex-direction:column;width:100%;gap:12px}
+  .hero--fullbleed .hero__ctas .btn{width:100%}
+}
+
+/* Trustbar schmaler + dezenter Glanz: radial highlight oben-links simuliert
+   Licht-Einfall, lineares Top-Band gibt dem Material Tiefe. */
+.trustbar{padding:32px 0;background:radial-gradient(ellipse at 20% -20%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 55%),linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 45%),var(--c-bg-warm-soft);border-top:4px solid var(--c-frame-warm);border-bottom:4px solid var(--c-frame-warm);position:relative;isolation:isolate}
+/* Leinen-Webe-Textur — feines kreuzendes Noise-Pattern mit leichter
+   Horizontal-Tendenz (baseFrequency 1.1 vs 0.55). Multiply blend macht
+   die Textur Teil des Warm-Tan-Materials, nicht Overlay darauf.
+   SVG ist als --noise-linen-Token in :root definiert (siehe Schritt 6). */
+.trustbar::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background-image:var(--noise-linen);
+  opacity:.06;
+  mix-blend-mode:multiply;
+}
+.trustbar__split{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:center}
+.trustbar__intro{grid-column:span 5}
+/* .trustbar__eyebrow + ::before sind ins geteilte Eyebrow-Pattern oben gemergt (2026-05-15) */
+.trustbar__h2{font-family:var(--font-display);font-size:clamp(1.4rem,2.2vw,1.9rem);line-height:1.2;letter-spacing:-.01em;margin:0 0 16px;color:var(--c-text)}
+.trustbar__lead{font-family:var(--font-display);font-style:italic;font-size:1.02rem;color:var(--c-text-muted);line-height:1.5;margin:0;max-width:320px;letter-spacing:.005em}
+.trustbar__grid{grid-column:span 7;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+/* min-height 64px erfüllt WCAG-Touch-Target plus optisches Atemraum.
+   touch-action:manipulation auf den a-Variants verhindert Double-Tap-Zoom. */
+.trustbar__item{display:flex;align-items:center;gap:16px;font-size:.95rem;color:var(--c-text-muted);min-height:64px}
+a.trustbar__item{touch-action:manipulation;border-radius:var(--radius-sm);padding:8px;margin:-8px}
+a.trustbar__item:active{background-color:rgba(11,36,68,.04)}
+.trustbar__icon{flex-shrink:0;width:24px;height:24px;display:grid;place-items:center;color:var(--c-primary);transition:color var(--ease-fast)}
+a.trustbar__item{color:inherit;text-decoration:none;transition:color var(--ease-fast)}
+a.trustbar__item:hover strong{color:var(--c-primary-dark)}
+a.trustbar__item:hover .trustbar__icon{color:var(--c-primary-dark)}
+.trustbar__item strong{display:block;color:var(--c-text);font-weight:600;margin-bottom:0}
+.trustbar__item span{display:block;color:var(--c-text-muted)}
+
+/* 12-Spalten-Grid (8px-Baseline, 24px Gutter) — Triage & Footer teilen sich dieses Raster für vertikale Spalten-Alignment */
+/* Triage: 3 gleichbreite Cards mit grosszügigem Gap statt Lücken im 12-col-Grid.
+   Verhältnis entspricht visuell Cols 1-3 · 5-7 · 9-11 — aber symmetrisch und
+   ohne hängende leere Spalte am Rand. */
+/* Triage: Editorial-Inhalt (Italic-Eyebrow + Editorial-H3 + Body-Satz + Text-Link)
+   in weissen Cards mit Surface-Hintergrund, Border und Padding.
+   Stand 2026-05-14: Editorial-Content beibehalten, dazu Card-Container. */
+/* .section-ornament und .visually-hidden sind ans Datei-Ende in @layer utilities verschoben (Schritt 8 / 2026-05-15) */
+/* Editorial-Intro-Spread: drei alternierende 5/7-Reihen mit Praxis-Bildern.
+   Reihen überlappen vertikal (negative margin-top) — Magazin-Spread-Idiom.
+   Sparsam in Text, dicht in Bild. Bild-Seite wechselt links/rechts. */
+.intro-spread{display:flex;flex-direction:column}
+.intro-spread__row{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(24px,3vw,40px);align-items:start;position:relative}
+/* Reihen werden gestapelt mit positivem Abstand — Text-Position folgt diesem Stack
+   (Reihen-Top markiert wo der Text-Block beginnt). */
+.intro-spread__row + .intro-spread__row{margin-top:clamp(40px,5vw,80px)}
+/* Magazin-Spread NUR auf Bilder, NUR auf Desktop: Visuals der Reihen 2 + 3 schieben
+   sich nach oben über die vorherige Reihe. Text-Block bleibt an Reihen-Top-Position.
+   Auf Mobile (<880px) ist Layout ein einzelner Stack — kein Überlapp dort, sonst
+   schieben sich Bilder in die vorherigen Texte (Quetschung). */
+@media(min-width:881px){
+  .intro-spread__row:nth-child(n+2) .intro-spread__visual{margin-top:clamp(-120px,-10vw,-40px)}
+  /* Reihe 3 (Daniela, Hochkant 4:5) wird sehr hoch, der Text endet weit über dem
+     Bild-Bottom. Max-height auf das Bild begrenzt es auf eine kompaktere Form ohne
+     den Crop zu zerstören (object-fit:cover ist schon gesetzt). */
+  .intro-spread__row:nth-child(3) .intro-spread__visual img{max-height:520px}
+}
+.intro-spread__visual{grid-column:span 5;margin:0;position:relative;z-index:1}
+.intro-spread__visual img{width:100%;height:auto;display:block;border-radius:var(--radius-md);aspect-ratio:4/5;object-fit:cover;box-shadow:var(--shadow-frame-photo)}
+/* Reihe 1 (Haus aussen) + Reihe 2 (Wartezimmer): Querformat 16/10 mit
+   breiterer Bild-Spalte (8/12 statt 5/12), damit die visuelle Höhe
+   näher an die Hochkant-Reihe 3 kommt. Mobile wird via @media unten
+   wieder auf 1fr-Single-Column gesetzt. */
+.intro-spread__row:nth-child(1) .intro-spread__visual img,
+.intro-spread__row:nth-child(2) .intro-spread__visual img{aspect-ratio:16/10}
+@media(min-width:881px){
+  .intro-spread__row:nth-child(1) .intro-spread__visual,
+  .intro-spread__row:nth-child(2) .intro-spread__visual{grid-column:span 8}
+  .intro-spread__row:nth-child(1) .intro-spread__copy,
+  .intro-spread__row:nth-child(2) .intro-spread__copy{grid-column:span 4}
+}
+.intro-spread__copy{grid-column:span 7;max-width:480px;position:relative;z-index:2}
+.intro-spread__row--reverse .intro-spread__visual{order:2}
+.intro-spread__row--reverse .intro-spread__copy{order:1;margin-left:auto}
+.intro-spread__eyebrow{display:inline-block;font-family:var(--font-body);font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-primary);margin-bottom:16px}
+.intro-spread h3{font-family:var(--font-display);font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.2;letter-spacing:-.01em;margin:0 0 16px;color:var(--c-text);font-weight:600}
+.intro-spread p{font-family:var(--font-body);font-size:1.05rem;line-height:1.6;color:var(--c-text-muted);margin:0;max-width:440px}
+@media(max-width:880px){
+  .intro-spread__row,
+  .intro-spread__row--reverse{grid-template-columns:1fr;gap:24px}
+  .intro-spread__row + .intro-spread__row{margin-top:32px}
+  .intro-spread__visual,.intro-spread__copy,
+  .intro-spread__row--reverse .intro-spread__visual,
+  .intro-spread__row--reverse .intro-spread__copy{grid-column:auto;max-width:none;order:0;margin-left:0}
+  /* Aspect-Ratios stabil halten beim Resize (2026-05-23):
+     Vorher: Row 3 sprang von 4/5 (Daniela-Portrait, hochformat) auf 16/10
+     (landscape, Crop schnitt Köpfe ab). User-Beobachtung „Größe ändert".
+     Jetzt: Row 1+2 bleiben 16/10 (Querformat-Aufnahmen), Row 3 bleibt 4/5
+     (Portrait), kein Override mehr — Aspect bleibt über alle Viewports stabil. */
+  .intro-spread__visual img{max-height:400px;object-position:center}
+  .intro-spread p{max-width:none}
+}
+/* Wegweiser-Dekoration für Triage-Section — oben-links absolut positioniert,
+   sitzt im Whitespace neben der Container-max-width. Auf Mobile ausgeblendet. */
+.section-wegweiser{position:absolute;top:clamp(24px,2.5vw,40px);left:clamp(80px,14vw,256px);width:clamp(64px,6vw,88px);height:auto;pointer-events:none;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08))}
+@media (max-width:980px){
+  .section-wegweiser{display:none}
+}
+.triage-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch;margin-top:clamp(8px,1.2vw,16px)}
+.triage-path{display:flex;flex-direction:column;gap:0;background:#fbfdff;border:2px solid var(--c-border);border-radius:var(--radius-xl);padding:clamp(24px,3vw,32px);position:relative;box-shadow:var(--shadow-sm);contain:layout style;transition:transform var(--ease-card) ease,box-shadow var(--ease-card) ease,border-color var(--ease-card) ease}
+/* Triage-Cards farbcodiert von links nach rechts: Rot (Notfall), Grün (Routine), Blau (Kennenlernen).
+   Opazität 60% (Hover steigert auf .9). */
+.triage-path:nth-child(1){border-color:rgba(220,38,38,.6)}
+.triage-path:nth-child(2){border-color:rgba(16,185,129,.6)}
+.triage-path:nth-child(3){border-color:rgba(27,91,192,.6)}
+/* Clickable-Card-Pattern: der jeweilige CTA-Link expandiert via ::before auf
+   die ganze Card-Fläche. Inner Links (z.B. „Notfalldienst Bern" in Card 1)
+   bleiben durch höhere z-index separat klickbar. */
+.triage-path:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.triage-path:nth-child(1):hover{border-color:rgba(220,38,38,.9)}
+.triage-path:nth-child(2):hover{border-color:rgba(16,185,129,.9)}
+.triage-path:nth-child(3):hover{border-color:rgba(27,91,192,.9)}
+.triage-path__btn::before,
+.triage-path__cta::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit}
+.triage-path p a{position:relative;z-index:2}
+/* Focus-Outline auf die ganze Card, wenn ein CTA-Link Focus hat */
+.triage-path:has(.triage-path__btn:focus-visible),
+.triage-path:has(.triage-path__cta:focus-visible){outline:3px solid var(--c-focus);outline-offset:3px}
+.triage-path__eyebrow{font-family:var(--font-display);font-style:italic;font-size:.95rem;color:var(--c-text-muted);margin:0 0 8px;letter-spacing:.005em}
+.triage-path h3{font-family:var(--font-display);font-size:clamp(1.3rem,2vw,1.65rem);line-height:1.2;letter-spacing:-.01em;margin:0 0 16px;color:var(--c-text);font-weight:600}
+.triage-path p{color:var(--c-text-muted);font-size:1rem;line-height:1.6;margin:0 0 16px;flex:1}
+.triage-path p a{color:var(--c-primary);text-decoration:underline;text-underline-offset:2px;font-weight:500}
+.triage-path__cta{font-family:var(--font-body);font-size:1rem;font-weight:600;color:var(--c-primary);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;text-decoration-color:var(--c-accent-dark);align-self:flex-start;transition:text-decoration-thickness var(--ease-fast),color var(--ease-fast)}
+.triage-path__cta:hover{text-decoration-thickness:2px;color:var(--c-primary-dark)}
+.triage-path__btn{align-self:stretch;margin-top:auto;font-size:1rem;padding:16px 24px}
+.triage-path--urgent .triage-path__eyebrow{color:var(--c-emergency-strong);font-style:normal;font-family:var(--font-body);font-weight:600;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
+
+/* Treatment-Catalog: 6 Cards im 3-col Grid (auf section--alt Hellblau).
+   Cards sind weisse, geborderte Tiles mit Icon → klare Catalog-/Auswahl-Optik.
+   Hover hebt mit Shadow + Accent-Border-Color. */
+.treat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,2.5vw,32px);align-items:stretch;margin-top:clamp(40px,5vw,56px)}
+.treat-card{background:var(--c-surface);border:2px solid rgba(27,91,192,.25);border-radius:var(--radius-xl);padding:clamp(24px,2.5vw,32px);display:flex;flex-direction:column;color:var(--c-text);box-shadow:var(--shadow-sm);contain:layout style;transition:transform var(--ease-card) ease,box-shadow var(--ease-card) ease,border-color var(--ease-card) ease}
+.treat-card::before{display:none}
+a.treat-card:hover{transform:translateY(-3px);color:var(--c-text);box-shadow:var(--shadow-md);border-color:var(--c-accent-dark)}
+.treat-card__icon{width:40px;height:40px;color:var(--c-primary);margin-bottom:16px;stroke-width:1.5;transition:color var(--ease-card),transform var(--ease-card)}
+a.treat-card:hover .treat-card__icon{color:var(--c-accent-dark);transform:scale(1.06)}
+.treat-card h3{font-size:1.15rem;margin-top:0;margin-bottom:.25em;line-height:1.3;color:var(--c-primary)}
+.treat-card__topic{display:block;font-family:var(--font-display);font-style:italic;font-size:.92rem;color:var(--c-text-muted);margin:0 0 1em;letter-spacing:.005em;line-height:1.3}
+.treat-card p{color:var(--c-text-muted);font-size:.95rem;margin-bottom:24px;flex:1;line-height:1.55}
+.treat-card__num{display:inline-block;font-family:var(--font-display);font-size:1.5rem;color:var(--c-accent-dark);font-weight:500;margin-bottom:16px;line-height:1;letter-spacing:-.01em}
+.treat-card__more{color:var(--c-primary);font-weight:600;font-size:.88rem;display:inline-flex;align-items:center;gap:8px;margin-top:auto;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;text-decoration-color:var(--c-accent-dark);transition:gap var(--ease-fast),text-decoration-thickness var(--ease-fast)}
+a.treat-card:hover .treat-card__more{gap:8px;text-decoration-thickness:2px;color:var(--c-primary-dark)}
+.treat-grid-more{text-align:left;margin-top:32px;font-size:1rem}
+.treat-grid-more a{color:var(--c-primary);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.treat-grid-more a:hover{text-decoration-thickness:2px}
+
+.team-lead{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:24px;align-items:center;background:transparent;border:none;border-radius:0;padding:0;margin:0 0 48px;position:relative}
+.team-lead__body{grid-column:span 3}
+.team-lead::before{display:none}
+/* ─── Avatar-Pattern (Schritt 5 / 2026-05-15) ────────────────────────
+   Geteilte Basis für die zwei Foto-Avatar-Varianten:
+   .team-lead__img (Lead-Portrait, gross) und .team-avatar__img (Grid, klein).
+   Gemeinsam: aspect-ratio 1/1, runde Mask, Warm-Tan-Fallback, Frame-Ring.
+   Unterschiede: team-avatar hat zusätzlich inset-Hairline und Hover-Animation.
+   .review-card__avatar bleibt absichtlich separat (Initial-Letter, kein Ring). */
+.team-lead__img,
+.team-avatar__img{
+  aspect-ratio:1/1;
+  border-radius:var(--radius-circle);
+  overflow:hidden;
+  background:var(--c-bg-warm);
+}
+.team-lead__img img,
+.team-avatar__img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.team-lead__img{box-shadow:var(--shadow-ring-frame),var(--shadow-md)}
+.team-lead__role{display:inline-block;font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--c-primary);font-weight:600;margin-bottom:.7em;font-family:var(--font-body)}
+.team-lead__name{font-family:var(--font-display);font-size:clamp(1.5rem,2.4vw,2rem);margin:0 0 .55em;line-height:1.2}
+.team-lead__bio{color:var(--c-text-muted);font-size:1rem;line-height:1.7;margin:0}
+@media (max-width:880px){
+  .team-lead{grid-template-columns:1fr;column-gap:0;row-gap:24px}
+  .team-lead__img{max-width:224px;margin:0 auto}
+  .team-lead__body{text-align:left;grid-column:auto}
+}
+@media (max-width:560px){
+  .team-lead__img{max-width:184px}
+  .team-lead{row-gap:24px}
+}
+/* Team-Avatars in Daniela-Grösse, 3+2 zentriert. Flexbox + justify-content
+   sorgt dafür, dass Item 4 und 5 in der zweiten Reihe automatisch zentrieren. */
+.team-avatars{display:flex;flex-wrap:wrap;justify-content:center;column-gap:24px;row-gap:32px;margin:0}
+.team-avatar{flex:0 0 clamp(180px,calc((100% - 48px) / 3),280px);max-width:280px;text-align:center;position:relative;contain:layout style}
+.team-avatar__img{margin:0 auto 16px;box-shadow:var(--shadow-ring-frame),var(--shadow-md);transition:transform var(--ease-card) ease,box-shadow var(--ease-card) ease}
+.team-avatar__img img{transition:transform .4s ease}
+.team-avatar:hover .team-avatar__img{transform:translateY(-3px);box-shadow:var(--shadow-ring-frame),var(--shadow-lg)}
+.team-avatar:hover .team-avatar__img img{transform:scale(1.04)}
+.team-avatar__name{font-family:var(--font-display);font-size:1.1rem;line-height:1.25;margin:0 0 4px;color:var(--c-text)}
+.team-avatar__role{color:var(--c-text-muted);font-size:.88rem;margin:0;line-height:1.45;padding:0 4px}
+
+/* Reviews (Demo: Mock-Daten in Form der Google Places API Response) */
+
+.timeline{display:grid;gap:0;max-width:760px;margin:0;padding:0;list-style:none}
+.timeline__item{display:grid;grid-template-columns:56px 1fr;gap:24px;padding:24px 0;border-bottom:1px solid var(--c-border-light)}
+.timeline__item:last-child{border-bottom:none}
+.timeline__num{width:44px;height:44px;display:grid;place-items:center;background:var(--c-primary);color:var(--c-white);border-radius:var(--radius-circle);font-family:var(--font-display);font-size:1.2rem;flex-shrink:0}
+.timeline__body h3{margin:6px 0 6px;font-size:1.2rem}
+.timeline__body p{margin:0;color:var(--c-text-muted)}
+
+/* Timeline Horizontal Modifier */
+.timeline--horizontal{display:grid;grid-template-columns:1fr;gap:0;max-width:720px;margin:0;padding-left:36px;position:relative;border-top:1px solid var(--c-border)}
+.timeline--horizontal .timeline__item{display:flex;flex-direction:column;padding:32px 0;border:none;border-bottom:1px solid var(--c-border);position:relative;z-index:1;text-align:left}
+.timeline--horizontal .timeline__num{display:none}
+.section--dark .timeline__body h3{color:var(--c-white);font-family:var(--font-body);font-weight:600;font-size:1.1rem}
+.section--dark .timeline__body p{color:#c0c8c2}
+.timeline--horizontal .timeline__body h3{margin:0 0 .5em;font-weight:600}
+@media (max-width:768px){
+  .timeline--horizontal .timeline__item{padding:24px 0}
+}
+
+.handover-box{background:transparent;border-left:4px solid var(--c-accent);padding:24px 32px;max-width:720px;margin:0}
+.handover-box__tag{display:inline-flex;align-items:center;gap:8px;background:var(--c-primary-bg);color:var(--c-primary);padding:5px 12px;border-radius:var(--radius-pill);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px}
+.handover-box h3{margin-bottom:.4em}
+.handover-box p{color:var(--c-text-muted);margin:0}
+
+.faq-wrap{max-width:824px;margin:0 auto}
+/* FAQ als vertikaler Text-Stack mit Fragezeichen-Icon links.
+   Reduziert auf 4 Kern-Fragen; kein Accordion mehr — alles immer sichtbar. */
+.faq-stack{display:flex;flex-direction:column;gap:clamp(32px,4vw,48px);max-width:720px;margin:clamp(40px,5vw,64px) auto 0}
+.faq-stack__item{display:grid;grid-template-columns:40px 1fr;column-gap:24px;row-gap:8px;align-items:start}
+.faq-stack__icon{grid-column:1;grid-row:1 / span 2;width:32px;height:32px;color:var(--c-primary);margin-top:2px}
+.faq-stack__question{grid-column:2;grid-row:1;font-family:var(--font-display);font-size:1.15rem;line-height:1.3;font-weight:600;color:var(--c-text);margin:0}
+.faq-stack__answer{grid-column:2;grid-row:2;font-size:1rem;line-height:1.65;color:var(--c-text-muted);margin:0}
+.faq-stack__answer a{color:var(--c-primary);text-decoration:underline;text-underline-offset:2px;font-weight:500}
+@media(max-width:560px){
+  .faq-stack__item{grid-template-columns:24px 1fr;column-gap:16px}
+  .faq-stack__icon{width:24px;height:24px}
+}
+.faq-item{border-bottom:1px solid var(--c-border);interpolate-size:allow-keywords;contain:layout style;transition:background-color var(--ease-slow),border-radius var(--ease-slow)}
+.faq-item:last-of-type{border-bottom:none}
+.faq-item[open]{background:var(--c-surface);border-radius:var(--radius-md)}
+.faq-item summary{padding:24px 16px;font-weight:600;font-size:1.05rem;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;color:var(--c-text)}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"";flex-shrink:0;width:12px;height:12px;border-right:2px solid var(--c-primary);border-bottom:2px solid var(--c-primary);transform:rotate(45deg);transition:transform var(--ease-slow)}
+.faq-item[open] summary::after{transform:rotate(-135deg)}
+.faq-item__body{padding:8px 16px 24px;color:var(--c-text-muted)}
+.faq-item::details-content{block-size:0;overflow:clip;transition:block-size var(--ease-slow),content-visibility .35s allow-discrete}
+.faq-item[open]::details-content{block-size:auto}
+.faq-item__body a{text-decoration:underline;text-underline-offset:2px}
+.faq-item__body p:last-child{margin-bottom:0}
+.faq-bottom{text-align:center;margin-top:36px;color:var(--c-text-muted)}
+.faq-bottom a{font-weight:600}
+
+.form{background:var(--c-surface);border:none;border-radius:var(--radius-xl);box-shadow:var(--shadow-md);padding:40px;max-width:720px;margin:0 auto}
+.form__row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* scroll-margin-top: wenn ein Validation-Error per JS .focus() ausgelöst wird,
+   scrollt der Browser das Feld in den View — der sticky-Header (64px) verdeckt
+   es sonst. 16px Atemraum darunter dem Header. */
+.form__field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;scroll-margin-top:calc(var(--header-h) + 16px);scroll-margin-bottom:calc(60px + var(--safe-bottom) + 16px)}
+.form__field label{font-weight:600;font-size:.9rem;color:var(--c-text)}
+/* font-size:max(16px,1rem) Belt-and-Suspenders gegen iOS-Auto-Zoom: 1rem ist heute
+   18px (sichere Untergrenze >16), aber falls jemand später die Base-Size ändert,
+   bleibt der Input zoom-frei. min-height:48px → WCAG-2.5.5 Touch-Target ohne
+   Padding-Drift bei wechselnden Browsern. */
+.form__field input,.form__field select,.form__field textarea{font-family:inherit;font-size:max(16px,1rem);padding:14px 16px;border:1px solid var(--c-border-strong);border-radius:var(--radius-sm);background:#f7f6f5;color:var(--c-text);transition:border-color var(--ease-fast),background-color var(--ease-fast);min-height:48px;width:100%;-webkit-appearance:none;appearance:none}
+/* Select bekommt eigenen Chevron-Pfeil (appearance:none entfernt System-Default).
+   Nur background-image setzen — background-color kommt von der parent-Regel oben
+   (bzw. von .form__field--error select für den roten Error-Zustand). Würde hier eine
+   zweite Layer mit linear-gradient(#f7f6f5,#f7f6f5) stehen, käme die Error-bg-Farbe
+   nicht durch. */
+.form__field select{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%231f2a24' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;background-size:12px;padding-right:42px}
+.form__field input:focus,.form__field select:focus,.form__field textarea:focus{border-color:var(--c-primary);outline:3px solid var(--c-accent);outline-offset:2px}
+.form__field textarea{resize:vertical;min-height:110px;line-height:1.5}
+.form__hint{font-size:.85rem;color:var(--c-text-light);margin-top:4px}
+.form__check{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text-muted);margin:8px 0 24px}
+.form__check input{margin-top:4px;flex-shrink:0}
+.form__notice{background:var(--c-primary-tint);border-left:3px solid var(--c-primary);padding:16px;border-radius:var(--radius-sm);font-size:.9rem;color:var(--c-text-muted);margin:0 0 24px}
+.form__notice a{text-decoration:underline;text-underline-offset:2px}
+/* Form-Honeypot: vorher `left:-9999px` — gleiche Issue wie skip-link (Page-Width-
+   Erweiterung auf alten Engines). Jetzt rein im Layout-Flow versteckt via clip-path
+   + 1×1px + overflow:hidden. Bots sehen den input weiterhin und füllen ihn aus → wird
+   in der Form-Submission gefiltert. */
+.form__honeypot{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
+.form__turnstile{margin:0 0 16px;min-height:65px}
+.form__field--error label{color:#991b1b}
+/* background-color statt background-shorthand — sonst killt der Shorthand das
+   background-image (Chevron auf select) und der Pfeil verschwindet im Error-State. */
+.form__field--error input,.form__field--error select{border-color:#dc2626;background-color:#fef2f2}
+.form__field--error input:focus,.form__field--error select:focus{outline-color:#dc2626}
+.form__status{margin-top:16px;padding:16px;border-radius:var(--radius-sm);font-size:.95rem;display:none;line-height:1.5}
+.form__status:not(:empty){display:block}
+.form__status--success{background:#d1fae5;color:#065f46;border-left:3px solid #10b981}
+.form__status--error{background:#fee2e2;color:#991b1b;border-left:3px solid #dc2626}
+.form__status a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.map-placeholder__hint a{text-decoration:underline;text-underline-offset:2px}
+
+/* Editorial-Split: gemeinsames 5/7 Spread für Kontakt, FAQ, Anfrage und weitere */
+.editorial-split{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(32px,5vw,64px);align-items:start}
+.editorial-split__intro{grid-column:span 5}
+.editorial-split__content{grid-column:span 7}
+.editorial-split__lead{font-size:1.05rem;color:var(--c-text-muted);line-height:1.6;margin:14px 0 0;max-width:380px}
+.editorial-split .faq-wrap{max-width:none;margin:0}
+@media(max-width:880px){
+  .editorial-split{grid-template-columns:1fr;gap:32px}
+  .editorial-split__intro,.editorial-split__content{grid-column:auto}
+}
+
+.contact-info{display:grid;gap:20px;margin:32px 0 0}
+.contact-info > div{margin:0}
+.contact-info dt{font-size:.78rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-muted);margin-bottom:4px}
+.contact-info dd{margin:0;color:var(--c-text);font-weight:500}
+.contact-info dd a{font-weight:600}
+.contact-info time{font-variant-numeric:tabular-nums}
+.opening-hours{display:grid;gap:4px;font-size:.95rem}
+.opening-hours__row{display:grid;grid-template-columns:80px 1fr;gap:12px}
+.opening-hours__row--closed{color:var(--c-text-light)}
+.contact-directions{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:.95rem}
+.map-section{display:flex;flex-direction:column;gap:16px}
+.map-actions{display:flex;gap:10px;flex-wrap:wrap}
+.map-actions .btn{flex:1;min-width:200px}
+.map-actions__alt{display:inline-block;color:var(--c-text-muted);font-size:.85rem;text-decoration:underline;text-underline-offset:2px;align-self:flex-start;margin-top:-4px}
+.map-actions__alt:hover{color:var(--c-primary)}
+.map-wrap{aspect-ratio:4/3;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--c-border);background:var(--c-primary-bg);position:relative}
+.map-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;text-align:center;background:linear-gradient(135deg,var(--c-primary-bg) 0%,var(--c-primary-tint) 100%)}
+.map-placeholder__title{font-weight:600;color:var(--c-text);margin:0;font-family:var(--font-display);font-size:1.2rem}
+.map-placeholder__hint{font-size:.85rem;color:var(--c-text-muted);max-width:380px;margin:0;line-height:1.5}
+.map-iframe{width:100%;height:100%;border:0}
+
+/* Standort-Section: knapper 2-col Layout, Info links + click-to-load Map rechts.
+   Section--compact reduziert das vertikale Padding, damit der Block visuell zurücktritt. */
+.standort{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(32px,5vw,64px);align-items:start}
+.standort__info{display:flex;flex-direction:column;gap:16px}
+.standort__info .section-head__eyebrow{margin-bottom:0}
+.standort__info h2{margin:0}
+.standort__address{font-style:normal;font-size:1rem;line-height:1.5;color:var(--c-text);margin:0}
+.standort__address strong{display:block;font-weight:600;margin-bottom:4px}
+.standort__contact{margin:0;font-size:1rem;line-height:1.7}
+.standort__contact a{font-weight:500}
+.standort__hours{font-size:.95rem;color:var(--c-text-muted);margin:0}
+.standort__route{align-self:flex-start;margin-top:8px}
+.standort__map{aspect-ratio:4/3;border-radius:var(--radius-md);overflow:hidden;border:4px solid var(--c-frame-warm);background:var(--c-primary-bg);position:relative;min-height:240px}
+@media(max-width:880px){
+  .standort{grid-template-columns:1fr;gap:32px}
+  /* aspect-ratio bleibt 4/3 (Base) — 16/10-Mobile-Override 2026-05-23 entfernt
+     (vermied Map-Höhen-Sprung am 880-Resize). */
+}
+
+.site-footer{background:var(--c-footer-bg);color:var(--c-white);padding:48px 0 24px;position:relative;isolation:isolate}
+.site-footer a{color:var(--c-white)}
+.site-footer a:hover{color:var(--c-accent)}
+
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.1fr;gap:40px;margin-bottom:32px}
+.footer-col h2{font-family:var(--font-body);font-size:.82rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin:0 0 16px;color:rgba(255,255,255,.62)}
+.footer-col ul{list-style:none;padding:0;margin:0;display:grid;gap:2px;font-size:.92rem}
+.footer-col ul a{display:inline-block;padding:6px 0;line-height:1.5}
+.footer-col p{font-size:.92rem;color:rgba(255,255,255,.82);margin:0 0 8px}
+.footer-col__brand p{font-size:.92rem;color:rgba(255,255,255,.85);line-height:1.6;max-width:360px}
+.footer-logo{height:48px;width:auto;display:block;margin:0 0 16px}
+.footer-address{font-style:normal;color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.65;margin:0 0 16px;max-width:360px}
+.footer-address strong{color:var(--c-white);font-weight:600;display:block;margin-bottom:4px}
+.footer-address__meta{display:block;font-size:.85rem;color:rgba(255,255,255,.55);margin-top:6px}
+.footer-address__link{color:inherit;text-decoration:none;display:inline-block;transition:color var(--ease-fast),opacity var(--ease-fast)}
+.footer-address__link:hover,.footer-address__link:focus-visible{color:var(--c-white);text-decoration:underline;text-underline-offset:3px}
+.footer-address__link:hover svg,.footer-address__link:focus-visible svg{opacity:1}
+.footer-address__link:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:3px;border-radius:2px}
+
+.footer-cta{display:inline-flex;align-items:center;justify-content:center;padding:10px 20px;border-radius:var(--radius-pill);color:var(--c-white);font-weight:500;font-size:.92rem;text-decoration:none;transition:all var(--ease-fast);border:1px solid rgba(255,255,255,.4);background:transparent;margin-top:4px;min-height:44px}
+.footer-cta:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.7);color:var(--c-white)}
+
+.footer-hours{display:grid;gap:4px;font-size:.92rem;margin-bottom:14px}
+.footer-hours__row{display:grid;grid-template-columns:84px 1fr;gap:12px;color:rgba(255,255,255,.85)}
+.footer-hours__row time{color:rgba(255,255,255,.78)}
+.footer-hours__row--closed{color:rgba(255,255,255,.5)}
+.footer-hours__hint{font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.55;margin:0}
+.footer-hours__hint a{color:rgba(255,255,255,.78);text-decoration:underline;text-underline-offset:2px}
+.footer-hours__hint a:hover{color:var(--c-white)}
+
+.footer-emergency{padding:16px 0;border-top:1px solid rgba(255,255,255,.1);font-size:.88rem;color:rgba(255,255,255,.62);text-align:center;line-height:1.55}
+.footer-emergency a{color:rgba(255,255,255,.85);text-decoration:underline;text-underline-offset:2px;font-weight:500}
+.footer-emergency a:hover{color:var(--c-white)}
+
+.footer-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:24px 0;border-top:1px solid rgba(255,255,255,.10);margin-top:8px}
+.footer-trust > span{display:inline-flex;align-items:center;padding:6px 14px;border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-pill);font-size:.78rem;color:rgba(255,255,255,.72);font-weight:500;letter-spacing:.02em;line-height:1.3;background:rgba(255,255,255,.02)}
+.footer-trust__sep{display:none!important}
+
+.footer-bottom{padding-top:14px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:.8rem;color:rgba(255,255,255,.5)}
+.footer-bottom__legal{display:inline-flex;gap:16px;flex-wrap:wrap}
+.footer-bottom__legal a{color:rgba(255,255,255,.62);text-decoration:underline;text-underline-offset:2px}
+.footer-bottom__legal a:hover{color:var(--c-white)}
+.footer-bottom a{color:rgba(255,255,255,.65)}
+.footer-bottom a:hover{color:var(--c-white)}
+
+.trust-banner{text-align:center;padding:20px 24px;background:var(--c-primary-tint);border-top:1px solid var(--c-border-light);font-size:.88rem;color:var(--c-text-muted)}
+.trust-banner svg{display:inline-block;vertical-align:-3px;margin-right:6px;color:var(--c-primary)}
+
+/* Sticky-Bar (Mobile): position:fixed mit left+right+width:100% für robusten Viewport-
+   Fit. `width:100%` als Fallback für Engines, die `left:0;right:0` inkonsistent
+   handhaben (alte Android-WebViews). max-width:100% verhindert dass inneres Content
+   (z.B. SVG ohne explizite Dimensionen) die Bar über den Viewport sprengt. */
+.sticky-bar{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%;background:var(--c-surface);border-top:1px solid var(--c-border);box-shadow:0 -4px 16px rgba(0,0,0,.06);z-index:40;height:calc(60px + var(--safe-bottom));padding-bottom:var(--safe-bottom);box-sizing:border-box}
+
+/* minmax(0,1fr) statt 1fr: verhindert dass Grid-Items über die Spalten ausbrechen,
+   wenn ihr Inhalt (SVG mit Default-300×150 auf alten Engines, oder lange Labels)
+   breiter wäre als die Spalten-Breite. Klassischer Grid-Overflow-Fix. */
+.sticky-bar__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:100%}
+.sticky-bar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--c-text);font-size:.72rem;font-weight:600;border-right:1px solid var(--c-border-light);min-width:0;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background-color var(--ease-fast)}
+.sticky-bar a:active{background-color:rgba(0,0,0,.04)}
+.sticky-bar a.is-emergency:active{background-color:#fde68a}
+.sticky-bar a.is-primary:active{background-color:#0a1f3a}
+.sticky-bar a:last-child{border-right:none}
+.sticky-bar a svg{width:20px;height:20px;flex-shrink:0}
+.sticky-bar a.is-emergency{color:var(--c-emergency-strong);background:var(--c-emergency-bg)}
+.sticky-bar a.is-primary{color:var(--c-white);background:var(--c-ink-deep)}
+
+@media (max-width:980px){
+  .hero__grid{grid-template-columns:1fr;gap:48px}
+  .hero__visual{aspect-ratio:4/5;max-width:420px}
+  .trustbar__split{grid-template-columns:1fr;gap:36px}
+  .trustbar__intro,.trustbar__grid{grid-column:auto}
+  .trustbar__grid{grid-template-columns:repeat(2,1fr);gap:24px}
+  .triage-flow{grid-template-columns:1fr;gap:16px}
+  .treat-grid{grid-template-columns:repeat(2,1fr)}
+  .map-section{grid-column:auto}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .footer-col__brand{grid-column:span 2}
+}
+@media (max-width:980px){
+  .nav__list a{padding:10px 9px;font-size:.9rem}
+}
+@media (max-width:880px){
+  .header__phone{font-size:0;gap:0;padding:10px;border:none;min-width:44px;justify-content:center}
+  .header__phone svg{width:20px;height:20px;flex-shrink:0}
+  .header__cta{display:none}
+}
+@media (max-width:768px){
+  /* Mobile-Nav-Drawer: scrollbar overflow-y:auto, max-height = viewport minus header,
+     damit lange Submenu-Stacks scrollen können statt am unteren Viewport-Rand
+     abgeschnitten zu werden (z.B. Behandlungen voll expandiert = 9 Items + Praxis = 12).
+     overscroll-behavior:contain → Drawer-Scroll triggert keinen Page-Scroll im Body. */
+  .nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--c-surface);border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);padding:16px 24px calc(16px + var(--safe-bottom));flex-direction:column;align-items:stretch;max-height:calc(100dvh - var(--header-h));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .nav.is-open{display:flex}
+  .nav__list{flex-direction:column;gap:0}
+  /* min-height 48px statt nur padding — robust auch wenn ein Link nur ein Wort lang ist. */
+  .nav__list a{padding:14px 12px;border-bottom:1px solid var(--c-border-light);min-height:48px;display:flex;align-items:center}
+  /* Mobile: Submenüs collapsible — by default geschlossen, Caret toggled.
+     Tap auf Text navigiert (Praxis-Hauptseite), Tap auf Caret expandiert. */
+  .nav__caret{display:inline-block;margin-left:auto;padding:12px;transition:transform var(--ease-slow);flex-shrink:0;box-sizing:content-box}
+  .nav__item--has-sub > a{display:flex;align-items:center;gap:8px}
+  .nav__item--has-sub.is-expanded > a .nav__caret{transform:rotate(180deg)}
+  .nav__sub{position:static;display:none;opacity:1;visibility:visible;transform:none;box-shadow:none;border:none;border-radius:0;padding:0;margin:0;background:transparent;transition:none;min-width:0}
+  .nav__item--has-sub.is-expanded .nav__sub{display:block}
+  .nav__sub a{padding:12px 12px 12px 28px;font-size:.88rem;color:var(--c-text-muted);white-space:normal;min-height:44px}
+  .header__phone,.header__cta{margin:8px 0 0;justify-content:center;font-size:1rem;min-height:48px}
+  .header__phone{padding:10px 16px;border:1px solid var(--c-border);min-width:auto}
+  .header__phone svg{width:16px;height:16px}
+  .nav-toggle{display:flex;margin-left:0}
+  .nav-quick{display:flex}
+  .nav-quick:first-of-type{margin-left:auto}
+  .hero{padding:40px 0 32px}
+  .form{padding:24px}
+  .form__row{grid-template-columns:1fr;gap:0}
+  .sticky-bar{display:block}
+  /* Body-Bottom-Padding kompensiert die Sticky-Bar-Höhe + iPhone-Home-Indicator.
+     Token --safe-bottom statt env() inline — synchronisiert mit .sticky-bar. */
+  body{padding-bottom:calc(60px + var(--safe-bottom))}
+  .footer-grid{grid-template-columns:1fr;gap:32px}
+  .footer-col__brand{grid-column:auto}
+  .brand__logo{height:40px}
+  .notfall-bar__inner{height:auto;min-height:var(--notfall-h);padding-top:8px;padding-bottom:8px;line-height:1.35;gap:8px;font-size:.88rem}
+}
+@media (max-width:560px){
+  h1{font-size:2rem}
+  h2{font-size:1.6rem}
+  .container{padding:0 20px}
+  .trustbar__grid{grid-template-columns:1fr;gap:16px}
+  .treat-grid{grid-template-columns:1fr}
+  .team-avatars{column-gap:16px;row-gap:24px}
+  .team-avatar{flex:0 0 calc(50% - 8px)}
+  .team-avatar__name{font-size:1rem}
+  .handover-box{padding:24px;padding-left:20px}
+  .hero__caption{font-size:1.1rem}
+  /* Trustbar auf Smartphone-Hochformat: H2 etwas kleiner, Lead-Text linksbündig
+     mit weniger Margin damit Section nicht doppelt so hoch wirkt wie nötig. */
+  .trustbar{padding:24px 0}
+  .trustbar__intro{margin-bottom:8px}
+  /* Form-Padding auf Smartphone: 24px-Edge ist auf 320er-Geräten zu eng. 16px gibt
+     mehr Atemraum für die Input-Felder selbst. */
+  .form{padding:20px;border-radius:var(--radius-lg)}
+  #anfrage-submit{padding:14px 24px;font-size:1rem}
+  /* Section-Padding auf Phone reduzieren — 5vw von 360px ≈ 18px, das ist hart.
+     section-py-flow ist clamp(96,9vw,160) → 9% von 360 = 32, mit min 96 = 96.
+     Das ist auf Mobile knapp gut. Für treat-grid und Editorial-Sections halbieren
+     wir die untere Section-Padding-Range. */
+  .section{padding-top:clamp(40px,8vw,80px);padding-bottom:clamp(40px,8vw,80px)}
+  /* Skip-Link auf Mobile robuster anbringen — falls Page-Bottom-Padding (sticky-bar)
+     ihn beim Focus auf den Sticky-Bar verschiebt. Token --safe-bottom statt env(). */
+  .skip-link{padding:12px 20px;font-size:.95rem}
+  /* Footer-Trust-Pills haben min 32px Höhe (Padding 6+14). Auf Smartphone klein wirken
+     sie ok, aber für Touch braucht es 44. Wir bumpen den Padding leicht. */
+  .footer-trust > span{padding:10px 14px;font-size:.78rem;min-height:36px}
+  /* Footer-Links: bessere Vertical-Touch-Targets */
+  .footer-col ul a{padding:10px 0;min-height:40px;display:inline-flex;align-items:center}
+}
+/* Sehr schmale Geräte (320px iPhone 5/SE original): zusätzliche Mikro-Anpassungen.
+   Bei 360px stört das nicht, bei 320 macht es den Unterschied zwischen lesbar
+   und gequetscht. */
+@media (max-width:360px){
+  .container{padding:0 16px}
+  .hero--fullbleed h1{font-size:clamp(2.4rem,11vw,3rem)}
+  .form{padding:18px}
+  #anfrage-submit{padding:14px 16px}
+  .sticky-bar a{font-size:.7rem;gap:1px}
+  .sticky-bar a svg{width:18px;height:18px}
+}
+/* @media (prefers-reduced-motion:reduce) ist ans Datei-Ende in @layer overrides verschoben (Schritt 8 / 2026-05-15) */
+
+/* Journey-Steps wurde durch treat-grid mit __num ersetzt — alte CSS entfernt */
+
+/* ── Praxisbilder-Streifen (Teaser auf Startseite, verlinkt /praxis/) ── */
+/* First-Visit-Liste (Praxis-Seite, Section „Vor Ihrem ersten Besuch")
+   — nummerierte Liste mit eigenständigem Ziffer-Block, ohne Icon-Kram. */
+.first-visit-list{list-style:none;counter-reset:fv;padding:0;margin:0;display:flex;flex-direction:column;gap:24px}
+.first-visit-list>li{counter-increment:fv;display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start}
+.first-visit-list>li::before{content:counter(fv,decimal-leading-zero);font-family:var(--font-display);font-size:1.4rem;font-weight:500;color:var(--c-accent-dark);line-height:1;padding-top:2px;letter-spacing:.02em}
+.first-visit-list>li strong{display:block;font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--c-text);margin-bottom:6px;line-height:1.3}
+.first-visit-list>li p{margin:0;color:var(--c-text-muted);line-height:1.65}
+@media(max-width:560px){
+  .first-visit-list>li{grid-template-columns:36px 1fr;gap:14px}
+  .first-visit-list>li::before{font-size:1.2rem}
+  .first-visit-list>li strong{font-size:1.05rem}
+}
+
+.praxis-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1180px;margin:0 auto}
+.praxis-strip__tile{position:relative;aspect-ratio:4/5;border-radius:var(--radius-md);overflow:hidden;background:var(--c-bg-warm);box-shadow:var(--shadow-sm);contain:layout style paint;transition:box-shadow var(--ease-card) ease,transform var(--ease-card) ease;display:block;text-decoration:none}
+.praxis-strip__tile:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.praxis-strip__tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.praxis-strip__tile:hover img{transform:scale(1.04)}
+.praxis-strip__caption{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,transparent 0%,rgba(11,36,68,.78) 100%);color:var(--c-white);padding:36px 16px 14px;font-family:var(--font-body);font-size:.82rem;font-weight:500;letter-spacing:.02em;line-height:1.35}
+.praxis-strip-more{text-align:center;margin-top:32px;font-size:1rem}
+.praxis-strip-more a{color:var(--c-primary);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-decoration-color:var(--c-accent-dark)}
+.praxis-strip-more a:hover{text-decoration-thickness:2px;color:var(--c-primary-dark)}
+
+/* Bewertungen — Review-Cards mit Avatar, Stars, Datum, Text.
+   Daten kommen aus /api/reviews (Google Places). Section ist initial hidden,
+   JS entfernt das Attribut nach erfolgreichem Fetch. */
+.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch;margin-top:clamp(32px,4vw,48px)}
+.review-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);padding:clamp(20px,2.5vw,28px);display:flex;flex-direction:column;gap:14px;contain:layout style}
+.review-card__header{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center}
+.review-card__avatar{width:40px;height:40px;border-radius:var(--radius-circle);background:var(--c-primary);color:var(--c-white);display:grid;place-items:center;font-family:var(--font-display);font-size:1.1rem;font-weight:500;flex-shrink:0}
+.review-card__meta{min-width:0}
+.review-card__author{font-weight:600;font-size:.95rem;color:var(--c-text);margin:0;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.review-card__date{font-size:.82rem;color:var(--c-text-light);margin:2px 0 0;line-height:1.2}
+.review-card__stars{color:var(--c-accent);font-size:1rem;letter-spacing:1px;line-height:1;flex-shrink:0}
+.review-card__text{font-size:.96rem;line-height:1.6;color:var(--c-text-muted);margin:0;flex:1;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-width:880px){
+  .review-grid{grid-template-columns:1fr;gap:16px}
+  .praxis-strip{grid-template-columns:repeat(2,1fr);gap:12px}
+}
+@media (max-width:560px){
+  /* Horizontal-Scroll mit Snap — jede Kachel kriegt volle Wirkung statt gequetschtem 2-col.
+     overscroll-behavior-x:contain → seitwärts-Swipe scrollt nicht die ganze Page mit
+     (sonst springt auf manchen Android-WebViews die Seite zur Praxis-Subpage). */
+  .praxis-strip{display:flex;grid-template-columns:none;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 20px 12px;margin:0 -20px;scroll-padding-left:20px;overscroll-behavior-x:contain}
+  .praxis-strip::-webkit-scrollbar{display:none}
+  /* flex:0 0 72% → letzte Tile peekt am rechten Rand und signalisiert „weiter scrollen".
+     touch-action:pan-x → erlaubt nur horizontale Touch-Pans innerhalb der Strip;
+     vertikales Scrollen geht via Page-Body (sonst „klebt" Finger an Strip fest). */
+  .praxis-strip__tile{flex:0 0 72%;scroll-snap-align:start;aspect-ratio:4/5;max-width:320px;touch-action:pan-x;-webkit-tap-highlight-color:transparent}
+  .praxis-strip__tile:last-child{margin-right:8px}
+  .praxis-strip__caption{padding:32px 14px 12px;font-size:.85rem}
+}
+
+/* @media print ist ans Datei-Ende in @layer overrides verschoben (Schritt 8 / 2026-05-15) */
+
+/* ───── Editorial-Flow Layout (Räume + Prozess + Closing) ─────
+   Token-Definitionen (--section-py-flow, --reading-measure, --body-leading-flow,
+   --item-gap-flow) sind in den Haupt-:root-Block oben gemergt (2026-05-15). */
+.flow-section{padding:var(--section-py-flow) 0;background:var(--c-primary-bg)}
+.flow-text{max-width:var(--reading-measure);margin:0 auto;padding:0 24px}
+/* .flow-eyebrow + ::before sind ins geteilte Eyebrow-Pattern oben gemergt (2026-05-15) */
+.flow-h2{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.6rem);line-height:1.2;letter-spacing:-.015em;color:var(--c-text);margin:0 0 24px}
+.flow-prose{font-family:var(--font-body);font-size:1.05rem;line-height:var(--body-leading-flow);color:var(--c-text-muted);margin:0}
+
+/* Editorial-Pair (alternierend Bild/Text wie Magazin-Spread) */
+.flow-pair-section{padding:clamp(64px,7vw,120px) 0;background:transparent}
+.flow-pair-section--accent-soft{background:var(--c-primary-bg-soft)}
+.flow-pair{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:center;max-width:min(calc(var(--container) - 48px),calc(100vw - 48px));margin:0 auto clamp(80px,10vw,140px)}
+.flow-pair:last-child{margin-bottom:0}
+.flow-pair__visual{grid-column:span 7}
+.flow-pair__copy{grid-column:span 5}
+.flow-pair--reverse .flow-pair__visual{grid-column:span 7;order:2}
+.flow-pair--reverse .flow-pair__copy{grid-column:span 5;order:1}
+.flow-pair__visual{margin:0}
+.flow-pair__visual img{width:100%;height:auto;display:block;border-radius:var(--radius-md);aspect-ratio:4/3;object-fit:cover;box-shadow:inset 0 0 0 1px var(--c-border-light)}
+.flow-caption{font-family:var(--font-body);font-size:.85rem;font-style:italic;color:var(--c-text-light);margin-top:14px;line-height:1.5}
+.flow-pair__copy{max-width:520px}
+.flow-pair__copy .flow-eyebrow{margin-bottom:14px}
+.flow-pair__copy h3{font-family:var(--font-display);font-size:clamp(1.5rem,2.8vw,2rem);line-height:1.2;margin:0 0 16px;color:var(--c-text)}
+@media(max-width:880px){
+  .flow-pair{grid-template-columns:1fr;gap:24px}
+  .flow-pair__visual,.flow-pair__copy,.flow-pair--reverse .flow-pair__visual,.flow-pair--reverse .flow-pair__copy{grid-column:auto;order:0}
+  /* aspect-ratio bleibt 4/3 (Base) — vorheriger 16/10-Mobile-Override entfernt
+     2026-05-23, weil er beim Resize sichtbares Größen-Snap erzeugte. */
+}
+
+/* Sequence-Stream (nummerierte Abfolge mit grossen Numeralen, ohne Cards) */
+.flow-sequence{list-style:none;padding:0;margin:48px auto 0;max-width:min(820px,92vw)}
+.flow-sequence__item{display:grid;grid-template-columns:72px 1fr;gap:clamp(20px,3vw,40px);padding:clamp(20px,2.5vw,32px) 0;border-bottom:1px solid var(--c-border-light);align-items:baseline}
+.flow-sequence__item:last-child{border-bottom:none}
+.flow-sequence__num{font-family:var(--font-display);font-size:clamp(1.6rem,2.4vw,2.2rem);line-height:1;letter-spacing:-.015em;color:var(--c-accent);font-weight:500}
+.flow-sequence__h3{font-family:var(--font-display);font-size:clamp(1.1rem,1.6vw,1.3rem);line-height:1.3;margin:0 0 8px;color:var(--c-text)}
+.flow-sequence__body p{font-family:var(--font-body);font-size:.98rem;line-height:1.6;color:var(--c-text-muted);margin:0}
+@media(max-width:560px){
+  .flow-sequence__item{grid-template-columns:48px 1fr;gap:16px;padding:18px 0}
+  .flow-sequence__num{font-size:1.4rem}
+}
+
+/* Editorial-Pair Modifier: portrait orientation für Team-Lead */
+.flow-pair__visual--portrait img{aspect-ratio:1/1;max-height:520px}
+
+/* Editorial-Pair Modifier: alternierender Hellblau-Container für Rhythmus */
+.flow-pair--accent{background:var(--c-primary-bg);padding:clamp(32px,5vw,64px);border-radius:var(--radius-lg)}
+@media(max-width:880px){.flow-pair--accent{padding:clamp(24px,5vw,40px)}}
+
+/* Editorial Team-List entfernt 2026-05-15 — Dead Code aus früherer Iteration.
+   War in keinem HTML referenziert. Falls in Zukunft wieder gebraucht, Git-History
+   konsultieren. */
+
+/* Editorial-Mikro-Ornamente (.dinkus, .section-rule, .has-dropcap, .marginalia)
+   sind ans Datei-Ende in @layer utilities verschoben (Schritt 8 / 2026-05-15) */
+
+/* Drop-Cap auf dem Tiefblau-Hero: Knallweiss für maximalen Kontrast */
+.hero--fullbleed .hero__sub.has-dropcap::first-letter{
+  color:var(--c-white);
+}
+
+/* Schluss-Adresse (direkte Anrede, kein CTA-Card) */
+.flow-closing{background-color:var(--c-bg-warm,#b8d8d0);background-image:linear-gradient(rgba(184,216,208,.86),rgba(184,216,208,.86)),url("/assets/images/atmo-aare-wasser.webp");background-image:linear-gradient(rgba(184,216,208,.86),rgba(184,216,208,.86)),image-set(url("/assets/images/atmo-aare-wasser.avif") type("image/avif"),url("/assets/images/atmo-aare-wasser.webp") type("image/webp"));background-size:cover;background-position:center;padding:clamp(64px,8vw,112px) 0;border-top:4px solid var(--c-frame-warm);border-bottom:4px solid var(--c-frame-warm);position:relative;isolation:isolate}
+/* Leinen-Webe-Textur — gleiches Material-Idiom wie Trustbar.
+   Beide Warm-Tan-Sektionen teilen sich die feine Stoff-Anmutung. */
+.flow-closing::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background-image:var(--noise-linen);
+  opacity:.06;
+  mix-blend-mode:multiply;
+}
+
+/* Atmosphäre-Bild: Holz-Banner als Section-Divider zwischen Räume und Behandlungen */
+/* Editorial-Overlap: Bild + überlappende Text-Karte (Magazin-Spread Pattern) */
+.editorial-overlap{position:relative;margin:0 auto clamp(40px,6vw,80px);max-width:min(calc(var(--container) - 48px),calc(100vw - 48px))}
+.editorial-overlap__visual{margin:0;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:var(--radius-md)}
+.editorial-overlap__visual img{width:100%;height:100%;object-fit:cover;display:block}
+.editorial-overlap__copy{background:var(--c-surface);padding:clamp(28px,4vw,48px);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);max-width:min(520px,calc(100% - 64px));margin-top:-80px;margin-left:32px;position:relative;z-index:2}
+.editorial-overlap--reverse .editorial-overlap__copy{margin-left:auto;margin-right:32px}
+.editorial-overlap--full-bleed{max-width:none;width:100vw;margin-left:calc(50% - 50vw)}
+.editorial-overlap--full-bleed .editorial-overlap__copy{margin-left:max(32px,calc((100vw - 1132px) / 2 + 32px))}
+.editorial-overlap__copy h3{font-family:var(--font-display);font-size:clamp(1.4rem,2.4vw,1.9rem);line-height:1.2;margin:.4em 0 .5em;color:var(--c-text)}
+.editorial-overlap__copy .flow-prose{margin:0}
+@media(max-width:768px){
+  .editorial-overlap__copy{margin-top:-40px;margin-left:16px;margin-right:16px;padding:clamp(20px,4vw,32px)}
+  /* aspect-ratio bleibt 16/9 (Base) — vorheriger 4/3-Mobile-Override entfernt
+     2026-05-23, weil er beim Resize sichtbares Aspect-Snap erzeugte. */
+  .editorial-overlap--reverse .editorial-overlap__copy{margin-left:16px;margin-right:16px}
+}
+
+/* Section-Divider: Holz-Material-Brücke zwischen Räume (weiss) und Behandlungen (hellblau).
+   Effekte bewusst zurückgenommen (2026-05-11): weichere Inner-Shadows, längere
+   Gradient-Fade-Zonen — Holz tritt stärker hervor, der Übergang bleibt unsichtbar. */
+.section-divider{position:relative;width:100%;height:120px;overflow:hidden;margin:0;display:block;box-shadow:inset 0 6px 18px -10px rgba(11,36,68,.14),inset 0 -6px 16px -10px rgba(11,36,68,.10)}
+.section-divider img{width:100%;height:100%;object-fit:cover;display:block}
+.section-divider::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.35) 8%,rgba(255,255,255,.08) 18%,transparent 28%,transparent 72%,rgba(232,239,248,.10) 82%,rgba(232,239,248,.40) 92%,#E8EFF8 100%)}
+@media(max-width:560px){.section-divider{height:80px}}
+.flow-closing__inner{max-width:min(720px,92vw);margin:0 auto;padding:0 24px;text-align:center}
+.flow-closing h2{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.25;letter-spacing:-.015em;margin:0 0 24px;color:var(--c-text)}
+.flow-closing__lead{font-family:var(--font-body);font-size:1.1rem;line-height:1.65;color:var(--c-text-muted);margin:0 0 40px}
+.flow-closing__contact{font-family:var(--font-display);font-size:clamp(1.1rem,1.6vw,1.35rem);line-height:1.65;color:var(--c-text);margin:0 0 28px}
+.flow-closing__contact a{color:var(--c-primary);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;transition:text-decoration-thickness var(--ease-fast)}
+.flow-closing__contact a:hover{text-decoration-thickness:2px}
+.flow-closing__hours{font-family:var(--font-body);font-size:.88rem;color:var(--c-text-light);margin:0}
+/* Closing-Quote (Startseite): Pull-Quote von Daniela als emotionaler Abschluss.
+   Display-Font italic, Attribution in Eyebrow-Caps darunter. */
+.flow-closing__quote{margin:0 auto 40px;max-width:620px}
+.flow-closing__quote p{font-family:var(--font-display);font-style:italic;font-size:clamp(1.2rem,1.9vw,1.55rem);line-height:1.5;color:var(--c-text);margin:0 0 24px;letter-spacing:-.005em}
+.flow-closing__quote footer{font-family:var(--font-body);font-style:normal;font-size:.82rem;letter-spacing:.12em;color:var(--c-text-muted);text-transform:uppercase;font-weight:600}
+.flow-closing__quote footer span{display:block;font-weight:400;font-size:.78rem;letter-spacing:.04em;text-transform:none;margin-top:4px;color:var(--c-text-light)}
+.flow-closing__cta{margin-top:8px}
+}/* /@layer components */
+
+/* ─── Utilities-Layer ────────────────────────────────────────────────
+   Helper-Klassen, die absichtlich höher in der Cascade als Components
+   stehen — damit sie z.B. innerhalb einer FAQ oder eines Editorial-
+   Paragraphen zuverlässig wirken. Verschoben aus der Datei-Mitte am
+   2026-05-15 (Schritt 8). */
+@layer utilities{
+/* Editorial-Ornament zwischen Section-Head und Cards — eine dezente Tilde
+   ersetzt einen visuellen Separator und schafft grossen Atemraum. */
+.section-ornament{display:block;text-align:center;font-family:var(--font-display);font-style:italic;font-weight:400;font-size:clamp(2rem,3vw,2.6rem);color:var(--c-accent-dark);margin:clamp(24px,3.5vw,48px) 0 clamp(24px,3.5vw,48px);line-height:1;user-select:none;letter-spacing:-.04em}
+/* Visually-hidden Helper für Screenreader-only-Texte (z.B. Section-H2 ohne sichtbares Heading). */
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ─── Editorial-Mikro-Ornamente (2026-05-11) ─────────────────────────
+   Dinkus: typografisches Atemzeichen zwischen Sections (* * *).
+   Drop-Cap: Initial-Capital für Editorial-Lead-Paragraphen.
+   ──────────────────────────────────────────────────────────────────── */
+.dinkus{
+  text-align:center;
+  font-family:var(--font-display);
+  font-size:1.6rem;
+  letter-spacing:1.2em;
+  color:var(--c-accent-dark);
+  margin:clamp(24px,3vw,48px) 0;
+  padding-left:1.2em; /* trailing letter-spacing visuell kompensieren */
+  user-select:none;
+  line-height:1;
+  opacity:.85;
+}
+
+/* section-rule: weisser Atemraum mit eleganter Hairline-Linie.
+   Position der Linie variiert via Modifier (--top/--center/--bottom)
+   als subtiler Bereichs-Klammer-Indikator. Drei Linien in Folge
+   markieren einen thematischen Cluster (Anfang, Mitte, Ende).
+   Bewegung ist Mikro-Shift (±18 px aus der Mitte), nicht dramatisch —
+   das Triplet wirkt als zusammengehöriges Set, die Position als
+   subtiles "wo im Bereich". */
+.section-rule{
+  background:var(--c-bg);
+  position:relative;
+  min-height:clamp(160px,20vh,240px);
+}
+.section-rule__line{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:clamp(120px,30vw,320px);
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--c-accent-dark) 25%,var(--c-accent-dark) 75%,transparent);
+}
+/* Position-Modifier benennen die Section-Rule nach ihrer Position IM BEREICH
+   (Anfang/Mitte/Ende), nicht nach der visuellen Position der Linie. */
+.section-rule--top .section-rule__line{transform:translate(-50%,calc(-50% + 18px))}
+.section-rule--center .section-rule__line{transform:translate(-50%,-50%)}
+.section-rule--bottom .section-rule__line{transform:translate(-50%,calc(-50% - 18px))}
+@media(max-width:560px){
+  .section-rule{min-height:clamp(120px,16vh,180px)}
+  .section-rule--top .section-rule__line{transform:translate(-50%,calc(-50% + 12px))}
+  .section-rule--bottom .section-rule__line{transform:translate(-50%,calc(-50% - 12px))}
+}
+
+.has-dropcap::first-letter{
+  float:left;
+  font-family:var(--font-display);
+  font-size:4.2rem;
+  line-height:.85;
+  margin:.08em .15em -.05em 0;
+  color:var(--c-accent-dark);
+  font-weight:500;
+  letter-spacing:-.02em;
+}
+/* Drop-Cap auf Mobile: komplett zurück auf Standard-Text.
+   Auf 360px-Viewports zerlegt selbst eine reduzierte Initiale den Lese-Fluss
+   der kurzen Hero-Sub-Zeilen — die Editorial-Geste funktioniert erst ab Tablet. */
+@media (max-width:560px){
+  .has-dropcap::first-letter{
+    float:none;
+    font-family:inherit;
+    font-size:inherit;
+    line-height:inherit;
+    margin:0;
+    color:inherit;
+    font-weight:inherit;
+    letter-spacing:inherit;
+  }
+}
+
+/* Marginalia: italic-Whisper am Rand — inline auf schmaleren Schirmen,
+   absolut in die Marginalie geflutet ab 1480px Viewport-Breite. */
+.marginalia{
+  display:block;
+  font-family:var(--font-display);
+  font-style:italic;
+  font-size:.88rem;
+  line-height:1.45;
+  color:var(--c-text-muted);
+  margin:0 0 14px;
+  letter-spacing:.01em;
+}
+@media(min-width:1480px){
+  .marginalia{
+    position:absolute;
+    left:-170px;
+    top:0;
+    width:150px;
+    margin:0;
+    padding-top:.3em;
+    text-align:right;
+  }
+}
+}/* /@layer utilities */
+
+/* ─── Overrides-Layer ────────────────────────────────────────────────
+   Globale Modifier mit höchster Cascade-Priorität:
+   - Print: alle Hintergründe weg, schwarzer Text, Komponenten ausblenden,
+     URLs nach Links inline drucken. Funktioniert auch ohne !important
+     wegen Layer-Priorität — !important defensiv beibehalten gegen
+     theoretische Inline-Styles.
+   - Reduced-Motion: alle Animationen/Transitions abschalten für User
+     mit prefers-reduced-motion:reduce. !important defensiv (s.o.). */
+@layer overrides{
+@media print{
+  @page{size:A4;margin:1.8cm}
+  *,*::before,*::after{background:transparent!important;color:#000!important;box-shadow:none!important;text-shadow:none!important}
+  body{font-size:11pt;line-height:1.45;padding:0!important}
+  .skip-link,.notfall-bar,.site-header,.site-footer,.sticky-bar,.trust-banner,.nav,.nav-toggle,.header__phone,.header__cta,.hero__ctas,.treat-card__more,.form,.handover-box__tag,.map-wrap{display:none!important}
+  main{padding:0!important}
+  .section{padding:18pt 0!important;page-break-inside:avoid}
+  h1,h2,h3,h4{page-break-after:avoid;break-after:avoid;color:#000!important}
+  h1{font-size:22pt}h2{font-size:16pt}h3{font-size:13pt}h4{font-size:11pt}
+  p,li,dd{font-size:11pt;color:#000!important;-webkit-hyphens:auto;hyphens:auto;-webkit-hyphenate-limit-chars:8 4 4;hyphenate-limit-chars:8 4 4}
+  article,section,figure,table,details{page-break-inside:avoid;break-inside:avoid}
+  details:not([open])>*:not(summary){display:block!important}
+  .faq-item summary::after{display:none}
+  .hero{padding:0 0 14pt!important}
+  .hero__visual{display:none}
+  .hero__grid{display:block}
+  .trustbar{padding:8pt 0!important;border:none!important}
+  .trustbar__grid{grid-template-columns:1fr 1fr;gap:8pt}
+  .triage-flow,.treat-grid,.team-avatars{display:block}
+  .triage-path,.treat-card,.team-avatar,.team-lead{border:1px solid #ccc!important;padding:10pt!important;margin-bottom:8pt!important;page-break-inside:avoid;background:#fff!important}
+  .team-avatar__img,.team-lead__img{display:none}
+  a[href^="http"]:after,a[href^="tel:"]:after,a[href^="mailto:"]:after{content:" (" attr(href) ")";font-size:.85em;color:#555!important;word-wrap:break-word}
+  a[href^="#"]:after,.brand a:after{content:""}
+  .container{max-width:100%!important;padding:0!important}
+  body::after{content:"Zahnärztehaus Arch — Bürenstrasse 13, 3296 Arch — +41 32 679 37 88";display:block;text-align:center;margin-top:16pt;padding-top:8pt;border-top:1px solid #999;font-size:9pt;color:#555!important}
+}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+}/* /@layer overrides */

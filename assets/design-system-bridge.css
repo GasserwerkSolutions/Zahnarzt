@@ -1,0 +1,84 @@
+/* assets/design-system-bridge.css
+ *
+ * Bridge layer for the existing Zahnärztehaus Arch website.
+ * Loaded after assets/main.css or assets/subpages.css.
+ *
+ * Rule:
+ * - the original page CSS remains visually authoritative
+ * - this file maps the existing --c-* language into DesignSystem tokens
+ * - use this as the migration seam for future component extraction
+ */
+
+@layer overrides {
+  html[data-tone="zahnaerztehaus"] {
+    /* Existing brand palette -> DesignSystem palette */
+    --color-bg-primary: var(--c-bg, #f3f9f7);
+    --color-bg-secondary: var(--c-bg-warm-soft, #d4e8e2);
+    --color-surface: var(--c-surface, #fff);
+    --color-surface-subtle: var(--c-primary-bg-soft, #f1f5fa);
+
+    --color-text-primary: var(--c-text, #1f2a24);
+    --color-text-secondary: var(--c-text-muted, #4a564f);
+    --color-text-tertiary: var(--c-text-light, #6b7269);
+
+    --color-border: var(--c-border, #e3dccc);
+    --color-border-light: var(--c-border-light, #ece5d3);
+    --color-border-dark: var(--c-border-strong, #9c917a);
+
+    --color-interactive: var(--c-cta, var(--c-primary, #1A4585));
+    --color-interactive-dark: var(--c-cta-dark, var(--c-primary-dark, #103260));
+    --color-interactive-light: var(--c-primary-bg, #E8EFF8);
+    --color-focus-ring: var(--c-focus, var(--c-primary, #1A4585));
+
+    --color-accent: var(--c-accent, #c9a66b);
+    --color-emergency-bg: var(--c-emergency-bg, #fef3c7);
+    --color-emergency-text: var(--c-emergency-text, #78350f);
+
+    /* Shape, spacing and motion */
+    --radius-sm: var(--radius-sm, 4px);
+    --radius-md: var(--radius-md, 8px);
+    --radius-lg: var(--radius-lg, 16px);
+    --radius-xl: var(--radius-xl, 24px);
+    --radius-2xl: 32px;
+    --radius-full: var(--radius-pill, 999px);
+
+    --elevation-0: none;
+    --elevation-1: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.05));
+    --elevation-2: var(--shadow-md, 0 12px 32px rgba(0,0,0,.12));
+    --elevation-3: var(--shadow-lg, 0 24px 64px rgba(0,0,0,.16));
+
+    --font-heading: var(--font-display, Georgia, serif);
+    --font-body: var(--font-body, system-ui, sans-serif);
+    --heading-font: var(--font-display, Georgia, serif);
+    --body-font: var(--font-body, system-ui, sans-serif);
+
+    --container: var(--container, 1120px);
+    --section-py: var(--section-py-flow, clamp(4rem, 8vw, 7rem));
+
+    /* Component contracts for new or gradually migrated blocks */
+    --btn-bg: var(--color-interactive);
+    --btn-fg: var(--c-cta-text, #fff);
+    --btn-bg-hover: var(--color-interactive-dark);
+    --btn-radius: var(--radius-full);
+
+    --card-bg: var(--color-surface);
+    --card-border: 1px solid var(--color-border);
+    --card-radius: var(--radius-lg);
+    --card-shadow: var(--elevation-2);
+
+    --site-header-bg: color-mix(in oklch, var(--color-surface) 92%, transparent);
+    --site-header-border: 1px solid var(--color-border-light);
+    --site-footer-bg: var(--c-footer-bg, #0d0d0d);
+  }
+
+  /* Small non-invasive accessibility bridge: make DesignSystem mode explicit
+     without changing layout, colors or typography of existing selectors. */
+  html[data-mode="light"] {
+    color-scheme: light;
+  }
+
+  html[data-density="comfortable"] {
+    --density-control-px: 1rem;
+    --density-control-py: .75rem;
+  }
+}
