@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /_workshop/
+
+Sitemap: https://zahnaerztehaus-arch.ch/sitemap.xml
