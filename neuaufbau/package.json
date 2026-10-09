@@ -1,0 +1,21 @@
+{
+  "name": "zahnaerztehaus-arch-neuaufbau",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/prepare-public.mjs",
+    "dev": "astro dev",
+    "prebuild": "node scripts/prepare-public.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@gasserwerksolutions/design-system": "github:GasserwerkSolutions/DesignSystem#v0.32.0",
+    "astro": "5.16.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

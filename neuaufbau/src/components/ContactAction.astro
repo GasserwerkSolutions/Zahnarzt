@@ -1,0 +1,15 @@
+---
+import { site } from "../data/site.mjs";
+const { urgent = false } = Astro.props;
+---
+<div class:list={["cta-band", urgent ? "cta-band--urgent" : "cta-band--split"]}>
+  <div>
+    <h2 class="cta-band__title">{urgent ? "Bitte rufen Sie bei akuten Beschwerden an." : "Termin oder Beratung anfragen"}</h2>
+    <p class="cta-band__text">{urgent ? "Eine E-Mail ist für dringliche Anliegen kein geeigneter Kontaktweg." : "Kontaktieren Sie die Praxis telefonisch oder per E-Mail. Ein konkreter Termin wird erst durch die Praxis vereinbart."}</p>
+  </div>
+  <div class="cta-band__actions">
+    <a class="btn" href={site.phoneHref}>Anrufen: {site.phoneLabel}</a>
+    {!urgent && <a class="btn btn--ghost" href={`mailto:${site.email}?subject=Terminanfrage%20Zahn%C3%A4rztehaus%20Arch`}>E-Mail senden</a>}
+  </div>
+</div>
+

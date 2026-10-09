@@ -1,0 +1,31 @@
+---
+import { site, treatments, hrefFor } from "../data/site.mjs";
+---
+<header class="site-header site-header--sticky">
+  <div class="container site-header__inner site-header__inner--arch">
+    <a class="site-header__brand" href="/" aria-label="Zahnärztehaus Arch – Startseite">
+      <img src="/assets/logo-text.svg" alt="Zahnärztehaus Arch" width="172" height="56" />
+    </a>
+    <nav class="site-header__nav desktop-nav" aria-label="Hauptnavigation">
+      <a class="site-header__link" href="/praxis-team/">Praxis &amp; Team</a>
+      <details class="nav-disclosure">
+        <summary class="site-header__link">Behandlungen <span aria-hidden="true">⌄</span></summary>
+        <div class="nav-disclosure__panel">
+          {treatments.map((t) => <a href={hrefFor(t.slug)}>{t.title}</a>)}
+        </div>
+      </details>
+      <a class="site-header__link" href="/kontakt-anfahrt/">Kontakt &amp; Anfahrt</a>
+    </nav>
+    <a class="btn btn--sm header-call" href={site.phoneHref} aria-label={`Praxis anrufen: ${site.phoneLabel}`}>Anrufen <span aria-hidden="true">↗</span></a>
+    <details class="mobile-nav">
+      <summary>Menü <span aria-hidden="true">☰</span></summary>
+      <nav aria-label="Mobile Navigation">
+        <a href="/praxis-team/">Praxis &amp; Team</a>
+        <a href="/kontakt-anfahrt/">Kontakt &amp; Anfahrt</a>
+        <span class="mobile-nav__label">Behandlungen</span>
+        {treatments.map((t) => <a href={hrefFor(t.slug)}>{t.title}</a>)}
+      </nav>
+    </details>
+  </div>
+</header>
+

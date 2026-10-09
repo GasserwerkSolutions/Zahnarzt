@@ -1,0 +1,49 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ContactAction from "../../components/ContactAction.astro";
+import { site, treatments, hrefFor } from "../../data/site.mjs";
+export function getStaticPaths() {
+  return treatments.map((t) => ({ params: { slug: t.slug }, props: { treatment: t } }));
+}
+const { treatment: t } = Astro.props;
+const related = (t.related ?? []).map((slug) => treatments.find((x) => x.slug === slug)).filter(Boolean);
+---
+<BaseLayout title={`${t.title} – Zahnärztehaus Arch`} description={t.lead} image={t.image ?? "/assets/images/praxis-aussen.webp"}>
+  <nav class="breadcrumbs" aria-label="Brotkrumen">
+    <div class="container"><a href="/">Startseite</a><span aria-hidden="true">/</span><span aria-current="page">{t.title}</span></div>
+  </nav>
+  <section class:list={["section", "page-intro", t.urgent ? "page-intro--urgent" : ""]}>
+    <div class="container reading-intro">
+      <p class="section-head__eyebrow">{t.urgent ? "Akute Beschwerden" : "Behandlung"}</p>
+      <h1>{t.title}</h1>
+      <p class="intro-lead">{t.lead}</p>
+      {t.urgent && <p><a class="btn" href={site.phoneHref}>Jetzt anrufen: {site.phoneLabel}</a></p>}
+      {t.urgent && <p class="emergency-fallback">Praxis nicht erreichbar? <a href="https://www.sso-bern.ch/de/notfalldienst" target="_blank" rel="noopener noreferrer">Zahnärztlicher Notfalldienst SSO Bern – Nummer Ihrer Region</a></p>}
+    </div>
+  </section>
+  {t.image && <div class="container treatment-image"><img src={t.image} alt={t.imageAlt} width="1050" height="600" loading="eager" /></div>}
+  <section class="section section--soft" aria-labelledby="details-title">
+    <div class="container article-grid">
+      <aside class="article-side">
+        <span class="article-side__eyebrow">Ihr Anliegen</span>
+        <p>{t.decision}</p>
+      </aside>
+      <div class="article-main">
+        <h2 id="details-title" class="visually-hidden">Behandlungsinformationen</h2>
+        {t.sections.map((section) => (
+          <section class="article-block">
+            <h2>{section.heading}</h2>
+            {section.paragraphs?.map((p) => <p>{p}</p>)}
+            {section.bullets && <ul class="article-list">{section.bullets.map((b) => <li>{b}</li>)}</ul>}
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+  {related.length > 0 && <section class="section" aria-labelledby="weitere-title"><div class="container">
+    <header class="section-head"><p class="section-head__eyebrow">Passende Informationen</p><h2 id="weitere-title" class="section-head__title">Verwandte Anliegen</h2></header>
+    <div class="service-grid service-grid--related">{related.map((r) => <article class="service-card"><h3 class="service-card__title">{r.title}</h3><p class="service-card__text">{r.short}</p><a href={hrefFor(r.slug)} class="service-card__more">Mehr erfahren <span aria-hidden="true">→</span></a></article>)}</div>
+  </div></section>}
+  <section class="section section--soft"><div class="container"><ContactAction urgent={t.urgent} /></div></section>
+</BaseLayout>
+

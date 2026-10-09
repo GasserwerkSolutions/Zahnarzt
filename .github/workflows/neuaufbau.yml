@@ -1,0 +1,28 @@
+name: Zahnärztehaus Neuaufbau – Build & Tests
+on:
+  pull_request:
+    paths: ["neuaufbau/**", ".github/workflows/neuaufbau.yml"]
+  push:
+    branches: ["feat/neuaufbau-designsystem-2026-10"]
+    paths: ["neuaufbau/**", ".github/workflows/neuaufbau.yml"]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: neuaufbau
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: zahnaerztehaus-neuaufbau
+          path: neuaufbau/dist/
+          retention-days: 14
+
