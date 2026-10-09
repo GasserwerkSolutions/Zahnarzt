@@ -67,7 +67,7 @@ export const treatments = [
       {
         "heading": "Wenn die Praxis nicht erreichbar ist",
         "paragraphs": [
-          "Die verbindlichen Notfallzeiten und der zuständige ausserordentliche Notfalldienst müssen durch die Praxis noch bestätigt werden. Verlassen Sie sich deshalb nicht auf eine unbeantwortete E-Mail als Notfallmeldung."
+          "Wenn die Praxis nicht erreichbar ist, finden Sie den für Ihren Wohnort zuständigen zahnärztlichen Notfalldienst bei SSO Bern. Warten Sie bei akuten Beschwerden nicht auf eine Antwort per E-Mail."
         ]
       }
     ],
@@ -228,7 +228,7 @@ export const treatments = [
         "heading": "Planung und Kosten",
         "paragraphs": [
           "Risiken, mögliche Behandlungsschritte und ein individueller Behandlungs- und Kostenplan sind Teil des Beratungsthemas.",
-          "Wichtig: Die vorliegenden Informationen belegen die Implantatberatung, nicht, dass Implantatoperationen von dieser Praxis selbst durchgeführt werden. Der operative Leistungsumfang ist vor Veröffentlichung verbindlich zu klären."
+          "Ob eine Implantatbehandlung für Ihre persönliche Zahnsituation geeignet ist, wird im Beratungsgespräch geklärt. Erkundigen Sie sich dabei auch, wer die einzelnen Behandlungsschritte durchführt."
         ]
       }
     ],
@@ -260,7 +260,7 @@ export const treatments = [
       {
         "heading": "Fragen vor dem ersten Besuch",
         "paragraphs": [
-          "Wenn Sie vor dem Termin etwas zur Betreuung Ihres Kindes wissen möchten, besprechen Sie das Anliegen mit dem Praxisteam. Konkrete Angaben zu Terminlänge und Vorbereitung sind noch mit der Praxis abzugleichen."
+          "Wenn Sie vor dem Termin etwas zur Betreuung Ihres Kindes oder zum ersten Besuch wissen möchten, können Sie dies mit dem Praxisteam besprechen."
         ]
       }
     ],

@@ -18,6 +18,7 @@ const related = (t.related ?? []).map((slug) => treatments.find((x) => x.slug ==
       <h1>{t.title}</h1>
       <p class="intro-lead">{t.lead}</p>
       {t.urgent && <p><a class="btn" href={site.phoneHref}>Jetzt anrufen: {site.phoneLabel}</a></p>}
+      {t.urgent && <p class="emergency-fallback">Praxis nicht erreichbar? <a href="https://www.sso-bern.ch/de/notfalldienst" target="_blank" rel="noopener noreferrer">Zahnärztlicher Notfalldienst SSO Bern – Nummer Ihrer Region</a></p>}
     </div>
   </section>
   {t.image && <div class="container treatment-image"><img src={t.image} alt={t.imageAlt} width="1050" height="600" loading="eager" /></div>}
