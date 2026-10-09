@@ -1,0 +1,22 @@
+---
+import { site } from "../data/site.mjs";
+---
+<footer class="site-footer">
+  <div class="container site-footer__inner site-footer__inner--arch">
+    <div>
+      <strong>{site.name}</strong>
+      <p>{site.address[0]}<br />{site.address[1]}</p>
+      <a href={site.phoneHref}>{site.phoneLabel}</a><br />
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+    <nav class="site-footer__nav" aria-label="Footer">
+      <a href="/praxis-team/">Praxis &amp; Team</a>
+      <a href="/kontakt-anfahrt/">Kontakt &amp; Anfahrt</a>
+      <a href="/behandlungen/notfall/">Zahnnotfall</a>
+      <a href="/datenschutz.html">Datenschutz</a>
+      <a href="/impressum.html">Impressum</a>
+    </nav>
+    <p class="footer-credit">© {new Date().getFullYear()} Zahnärztehaus Arch</p>
+  </div>
+</footer>
+

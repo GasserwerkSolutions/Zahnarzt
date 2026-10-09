@@ -1,0 +1,34 @@
+---
+import "../styles/site.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { site } from "../data/site.mjs";
+const { title = site.name, description = "Zahnmedizin in Arch: Vorsorge, Behandlungen, Notfälle und persönliche Beratung.", image = "/assets/images/praxis-aussen.webp" } = Astro.props;
+const canonical = new URL(Astro.url.pathname, site.domain).toString();
+---
+<!doctype html>
+<html lang="de-CH" data-design-system="builder" data-tone="trust arch" data-mode="light" data-density="comfortable">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#173c57" />
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="de_CH" />
+  <meta property="og:site_name" content={site.name} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={new URL(image, site.domain).toString()} />
+  <title>{title}</title>
+</head>
+<body>
+  <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+  <SiteHeader />
+  <main id="inhalt"><slot /></main>
+  <SiteFooter />
+</body>
+</html>
+

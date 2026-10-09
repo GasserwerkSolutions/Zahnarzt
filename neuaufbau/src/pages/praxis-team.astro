@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContactAction from "../components/ContactAction.astro";
+import { team } from "../data/site.mjs";
+---
+<BaseLayout title="Praxis & Team – Zahnärztehaus Arch" description="Lernen Sie Daniela Tamas-Hess und das Praxisteam des Zahnärztehauses Arch kennen.">
+  <section class="section page-intro">
+    <div class="container reading-intro">
+      <p class="section-head__eyebrow">Praxis &amp; Team</p>
+      <h1>Die Menschen hinter Ihrer Behandlung.</h1>
+      <p class="intro-lead">Das Zahnärztehaus Arch wird seit März 2026 von Daniela Tamas-Hess weitergeführt. Das bestehende Team ist weiterhin Teil der Praxis.</p>
+    </div>
+  </section>
+  <section class="section section--soft" aria-labelledby="team-title">
+    <div class="container">
+      <h2 id="team-title" class="section-title">Unser Team</h2>
+      <div class="team-grid">
+        {team.map((person) => (
+          <article class="team-person">
+            <img src={person.image} alt={person.name} width="480" height="480" loading="lazy" />
+            <div><h3>{person.name}</h3><p>{person.role}</p></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container editorial-split editorial-split--arch">
+      <div class="editorial-split__media"><img src="/assets/images/wartezimmer.webp" alt="Wartebereich der Praxis" width="940" height="720" loading="lazy" /></div>
+      <div class="editorial-split__content">
+        <p class="section-head__eyebrow">Vor Ort</p>
+        <h2>Besuchen Sie uns in Arch.</h2>
+        <p>Die Praxis befindet sich an der Bürenstrasse 13, 3296 Arch. Für Fragen zu einem Besuch oder einer Behandlung hilft das Team telefonisch weiter.</p>
+        <a href="/kontakt-anfahrt/" class="text-link">Kontakt &amp; Anfahrt <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+  <section class="section section--soft"><div class="container"><ContactAction /></div></section>
+</BaseLayout>
+

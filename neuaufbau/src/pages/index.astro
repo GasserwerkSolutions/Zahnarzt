@@ -1,0 +1,70 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContactAction from "../components/ContactAction.astro";
+import { site, treatments, hrefFor } from "../data/site.mjs";
+---
+<BaseLayout title="Zahnärztehaus Arch – Zahnarztpraxis in Arch" description="Zahnärztehaus Arch, Bürenstrasse 13: Vorsorge, Zahnbehandlungen, Kinderzahnheilkunde und Implantatberatung. Kontakt und Behandlungsübersicht.">
+  <section class="hero hero--split hero--soft cq home-hero">
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <p class="hero__eyebrow">Zahnärztehaus Arch · Seeland</p>
+        <h1 class="hero__title">Ihre Zahnarztpraxis in Arch.</h1>
+        <p class="hero__lead">Vorsorge, Zahnerhalt und persönliche Beratung – mit einem festen Praxisteam an der Bürenstrasse 13.</p>
+        <div class="hero__actions">
+          <a class="btn" href={site.phoneHref}>Termin telefonisch anfragen</a>
+          <a class="btn btn--ghost" href="#behandlungen">Behandlungen ansehen</a>
+        </div>
+        <p class="hero__fine">{site.phoneLabel} · {site.address.join(", ")}</p>
+      </div>
+      <div class="hero__media">
+        <img src="/assets/images/praxis-aussen.webp" alt="Aussenansicht der Praxis Zahnärztehaus Arch" width="1100" height="820" fetchpriority="high" />
+      </div>
+    </div>
+  </section>
+  <section class="quick-help">
+    <div class="container quick-help__inner">
+      <div><strong>Zahnschmerzen oder Zahnunfall?</strong><p>Bei einem akuten Anliegen direkt anrufen.</p></div>
+      <a href="/behandlungen/notfall/" class="quick-help__link">Informationen zum Zahnnotfall <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+  <section class="section cq" id="behandlungen" aria-labelledby="leistungen-title">
+    <div class="container">
+      <header class="section-head">
+        <p class="section-head__eyebrow">Behandlungen</p>
+        <h2 class="section-head__title" id="leistungen-title">Was führt Sie zu uns?</h2>
+        <p class="section-head__lead">Wählen Sie Ihr Anliegen. Jede Seite erklärt die Möglichkeiten und den passenden nächsten Schritt.</p>
+      </header>
+      <div class="service-grid service-grid--arch">
+        {treatments.map((t) => (
+          <article class="service-card">
+            <h3 class="service-card__title">{t.title}</h3>
+            <p class="service-card__text">{t.short}</p>
+            <a class="service-card__more" href={hrefFor(t.slug)}>Mehr dazu <span aria-hidden="true">↗</span></a>
+          </article>
+        ))}
+      </div>
+      <p class="small-note">Auch professionelle Zahnaufhellung (Bleaching) ist ein Beratungsthema. Zu Verfahren, Aufwand und Kosten gibt die Praxis auf Anfrage Auskunft.</p>
+    </div>
+  </section>
+  <section class="section section--soft cq" aria-labelledby="praxis-title">
+    <div class="container editorial-split editorial-split--arch">
+      <div class="editorial-split__media">
+        <img src="/assets/images/team/team-tamas-hess.webp" loading="lazy" alt="Daniela Tamas-Hess, Zahnärztin und Inhaberin" width="600" height="600" />
+      </div>
+      <div class="editorial-split__content">
+        <p class="section-head__eyebrow">Praxis &amp; Menschen</p>
+        <h2 id="praxis-title">Persönlich betreut in Arch.</h2>
+        <p>Daniela Tamas-Hess führt die Praxis seit März 2026 weiter. Das vertraute Praxisteam blieb bei der Übernahme bestehen.</p>
+        <p>Wer Sie betreut und wie die Praxis aussieht, erfahren Sie auf unserer Teamseite.</p>
+        <a class="text-link" href="/praxis-team/">Praxis und Team kennenlernen <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+  <section class="section cq" aria-labelledby="kontakt-title">
+    <div class="container">
+      <header class="section-head"><p class="section-head__eyebrow">Nächster Schritt</p><h2 class="section-head__title" id="kontakt-title">So erreichen Sie uns.</h2></header>
+      <ContactAction />
+    </div>
+  </section>
+</BaseLayout>
+
